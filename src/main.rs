@@ -11,7 +11,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Fruits game!".into(),
-                        resolution: (1200., 600.).into(),
+                        resolution: (1140., 660.).into(),
                         ..default()
                     }),
                     ..default()
@@ -23,6 +23,11 @@ fn main() {
 }
 
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
+    commands.spawn(SpriteBundle {
+        texture: assert_server.load("bg.png"),
+        transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(1.5)),
+        ..default()
+    });
 }

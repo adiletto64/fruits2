@@ -55,7 +55,7 @@ fn setup(
     let sprite = SpriteSheetBundle {
         texture_atlas: texture_atlas_handle,
         sprite: TextureAtlasSprite::new(0),
-        transform: Transform::from_xyz(0.0, -250.0, 2.0).with_scale(Vec3::splat(6.0)),
+        transform: Transform::from_xyz(0.0, -250.0, 2.0).with_scale(Vec3::splat(5.0)),
         ..default()
     };
 

@@ -29,7 +29,6 @@ impl FruitAssets {
         let random_index: usize = rng.gen_range(0..self.images.len());
         return self.images[random_index].clone();
     }
-    
 }
 
 
@@ -45,11 +44,15 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let apple_handle: Handle<Image> = asset_server.load("apple.png");
-    let banana_handle: Handle<Image> = asset_server.load("banana.png");
+    let image_names = ["apple.png", "banana.png", "strawberry.png", "peach.png", "orange.png"];
+    let mut images: Vec<Handle<Image>> = Vec::new();
+
+    for name in image_names {
+        images.push(asset_server.load(name))
+    }
 
     let fruit_assets = FruitAssets {
-        images: vec![apple_handle, banana_handle]
+        images: images
     };
 
     commands.insert_resource(fruit_assets);
@@ -68,15 +71,24 @@ fn gen_fruit(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let sprite = SpriteBundle {
-            texture: fruit_assets.get_random_image(),
-            transform: Transform::from_xyz(
-                gen_random_number(-600, 600) as f32, 200., 0.)
-                .with_scale(Vec3::splat(0.2)),
-            ..default()
-        };
+        let combo = gen_random_number(1, 4);
+        let x_axis = gen_random_number(-400, 400) as f32;
 
-        commands.spawn((sprite, Fruit));
+        for i in 0..combo {
+            let sprite = SpriteBundle {
+                texture: fruit_assets.get_random_image(),
+                transform: Transform::from_xyz(
+                    x_axis, 350. + 40. * i as f32, 0.)
+                    .with_scale(Vec3::splat(3.5))
+                    .with_rotation(Quat::from_rotation_z((gen_random_number(0, 240) as f32).to_radians())),
+                ..default()
+            };
+
+            commands.spawn((sprite, Fruit));            
+        }
+
+        timer.0.set_duration(Duration::from_millis(gen_random_number(500, 1500) as u64));
+
     }
 }
 
@@ -84,6 +96,7 @@ fn gen_fruit(
 fn fall(time: Res<Time>, mut query: Query<&mut Transform, With<Fruit>>) {
     for mut fruit in &mut query {
         fruit.translation.y -= 300.0 * time.delta_seconds();
+        fruit.rotate_z(2.0_f32.to_radians());
     }
 }
 
