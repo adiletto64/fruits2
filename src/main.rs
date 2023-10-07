@@ -2,6 +2,8 @@ use bevy::prelude::*;
 mod chef;
 mod fruit;
 
+mod animate;
+
 
 fn main() {
     App::new()
@@ -27,7 +29,7 @@ fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn(SpriteBundle {
         texture: assert_server.load("bg.png"),
-        transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(1.5)),
+        transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(15.)),
         ..default()
     });
 }

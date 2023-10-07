@@ -3,6 +3,8 @@ use std::time::Duration;
 use rand::prelude::*;
 use bevy::prelude::*;
 
+use crate::chef::FruitHit;
+
 
 pub struct FruitPlugin;
 
@@ -11,7 +13,7 @@ impl Plugin for FruitPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
-            .add_systems(Update, (gen_fruit, fall))
+            .add_systems(Update, (gen_fruit, fall, hit, animate_slice))
         ;
     }
 }
@@ -19,13 +21,12 @@ impl Plugin for FruitPlugin {
 
 #[derive(Resource)]
 struct FruitAssets {
-    images: Vec<Handle<Image>>
+    images: Vec<Handle<TextureAtlas>>
 }
 
 impl FruitAssets {
-    fn get_random_image(&self) -> Handle<Image> {
+    fn get_random_image(&self) -> Handle<TextureAtlas> {
         let mut rng = rand::thread_rng();
-    
         let random_index: usize = rng.gen_range(0..self.images.len());
         return self.images[random_index].clone();
     }
@@ -33,22 +34,58 @@ impl FruitAssets {
 
 
 #[derive(Component)]
-struct Fruit;
+struct Fruit {
+    rotation_velocity: f32,
+}
+
+impl Fruit {
+    fn new() -> Self {
+        return Self {
+            rotation_velocity: randint(-15, 20) as f32 * 0.1
+        }
+    }
+}
+
+
+#[derive(Component)]
+struct Hit {
+    timer: Timer,
+}
+
+impl Hit {
+    fn start() -> Self {
+        return Self {
+            timer: Timer::new(Duration::from_millis(60), TimerMode::Repeating),
+        }
+    }
+}
+
 
 #[derive(Resource)]
 struct FruitGenerationTimer(Timer);
 
 
-
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    let image_names = ["apple.png", "banana.png", "strawberry.png", "peach.png", "orange.png"];
-    let mut images: Vec<Handle<Image>> = Vec::new();
+    let image_names = ["apple-frames.png", "strawberry.png", "orange.png"];
+    let mut images: Vec<Handle<TextureAtlas>> = Vec::new();
 
     for name in image_names {
-        images.push(asset_server.load(name))
+        let texture = TextureAtlas::from_grid(
+            asset_server.load(name),
+            Vec2::new(40.0, 40.0),
+            4,
+            1,
+            None,
+            None
+        );
+
+        let handle = texture_atlases.add(texture);
+
+        images.push(handle);
     }
 
     let fruit_assets = FruitAssets {
@@ -71,38 +108,83 @@ fn gen_fruit(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let combo = gen_random_number(1, 4);
-        let x_axis = gen_random_number(-400, 400) as f32;
+        let combo = randint(1, 4);
+        let x_axis = randint(-400, 400) as f32;
 
         for i in 0..combo {
-            let sprite = SpriteBundle {
-                texture: fruit_assets.get_random_image(),
+            let sprite = SpriteSheetBundle {
+                texture_atlas: fruit_assets.get_random_image(),
+                sprite: TextureAtlasSprite::new(0),
                 transform: Transform::from_xyz(
-                    x_axis, 350. + 40. * i as f32, 0.)
-                    .with_scale(Vec3::splat(3.5))
-                    .with_rotation(Quat::from_rotation_z((gen_random_number(0, 240) as f32).to_radians())),
+                    x_axis, 350. + 40. * i as f32, 1.)
+                    .with_scale(Vec3::splat(3.5)),
                 ..default()
             };
 
-            commands.spawn((sprite, Fruit));            
+            commands.spawn((sprite, Fruit::new()));            
         }
 
-        timer.0.set_duration(Duration::from_millis(gen_random_number(500, 1500) as u64));
+        timer.0.set_duration(Duration::from_millis(randint(500, 1500) as u64));
 
     }
 }
 
 
-fn fall(time: Res<Time>, mut query: Query<&mut Transform, With<Fruit>>) {
-    for mut fruit in &mut query {
-        fruit.translation.y -= 300.0 * time.delta_seconds();
-        fruit.rotate_z(2.0_f32.to_radians());
+fn hit(
+    mut events: EventReader<FruitHit>, 
+    mut query: Query<(&Transform, Entity), With<Fruit>>,
+    mut commands: Commands
+) {
+    for event in events.iter() {
+        let x = event.x;
+        let y = event.y;
+        for (transform, entity) in &mut query {
+            let fruit_x = transform.translation.x;
+            let fruit_y = transform.translation.y;
+
+            if x > fruit_x - 150. && x < fruit_x + 150. && y > fruit_y - 100. && y < fruit_y + 100. {
+                commands.entity(entity).insert(Hit::start());
+            }
+        }
+    }
+}
+
+
+fn fall(time: Res<Time>, mut query: Query<(&mut Transform, &Fruit, Entity)>, mut commands: Commands) {
+    for (mut transform, fruit, entity) in &mut query {
+        transform.translation.y -= 400.0 * time.delta_seconds();
+        transform.rotate_z(fruit.rotation_velocity.to_radians());
+
+        if transform.translation.y <= -400.0 {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
 
 
-fn gen_random_number(min: i32, max: i32) -> i32 {
+fn randint(min: i32, max: i32) -> i32 {
     let mut rng = rand::thread_rng();
     return rng.gen_range(min..max);
+}
+
+
+
+fn animate_slice(
+    time: Res<Time>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Hit, Entity), With<Fruit>>,
+    mut commands: Commands
+) {
+
+    for (mut sprite, mut hit, entity) in query.iter_mut() {
+        hit.timer.tick(time.delta());
+        if hit.timer.just_finished() {
+            if sprite.index == 3 { 
+                commands.entity(entity).remove::<Hit>();
+            }
+            else {
+                sprite.index += 1;
+            }
+        }        
+    }
 }
