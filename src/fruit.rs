@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use rand::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 use crate::chef::FruitHit;
 
@@ -136,13 +136,13 @@ fn hit(
     mut commands: Commands
 ) {
     for event in events.iter() {
-        let x = event.x;
-        let y = event.y;
         for (transform, entity) in &mut query {
-            let fruit_x = transform.translation.x;
-            let fruit_y = transform.translation.y;
-
-            if x > fruit_x - 150. && x < fruit_x + 150. && y > fruit_y - 100. && y < fruit_y + 100. {
+            if collide(
+                transform.translation, 
+                Vec2::new(140., 220.), 
+                event.translation, 
+                Vec2::new(40., 40.), 
+            ).is_some() {
                 commands.entity(entity).insert(Hit::start());
             }
         }

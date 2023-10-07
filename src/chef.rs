@@ -22,11 +22,6 @@ struct Player {
     trigger_slice: bool
 }
 
-#[derive(Resource)]
-struct PlayerSprites {
-    sprites: TextureAtlasSprite,
-}
-
 
 #[derive(Component)]
 struct Hit {
@@ -44,8 +39,7 @@ impl Hit {
 
 #[derive(Event)]
 pub struct FruitHit {
-    pub x: f32, 
-    pub y: f32
+    pub translation: Vec3
 }
 
 
@@ -154,8 +148,7 @@ fn hit(
             player.trigger_slice = true;
 
             event.send(FruitHit {
-                 x: transform.translation.x, 
-                 y: transform.translation.y
+                translation: transform.translation
             });
         }
     }
