@@ -9,6 +9,9 @@ use crate::chef::FruitHit;
 pub struct FruitPlugin;
 
 
+const SLICE_ANIMATION_SPEED: u64 = 80;
+
+
 impl Plugin for FruitPlugin {
     fn build(&self, app: &mut App) {
         app
@@ -39,11 +42,7 @@ struct Fruit {
 }
 
 impl Fruit {
-    fn new() -> Self {
-        return Self {
-            rotation_velocity: randint(-15, 20) as f32 * 0.1
-        }
-    }
+    fn new() -> Self { Self { rotation_velocity: randint(-15, 20) as f32 * 0.1 } }
 }
 
 
@@ -55,7 +54,7 @@ struct Hit {
 impl Hit {
     fn start() -> Self {
         return Self {
-            timer: Timer::new(Duration::from_millis(60), TimerMode::Repeating),
+            timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating),
         }
     }
 }
@@ -133,22 +132,22 @@ fn gen_fruit(
 fn hit(
     mut events: EventReader<FruitHit>, 
     mut query: Query<(&Transform, Entity), With<Fruit>>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     for event in events.iter() {
         for (transform, entity) in &mut query {
             if collide(
                 transform.translation, 
-                Vec2::new(140., 220.), 
+                Vec2::new(140., 240.), 
                 event.translation, 
                 Vec2::new(40., 40.), 
             ).is_some() {
+
                 commands.entity(entity).insert(Hit::start());
             }
         }
     }
 }
-
 
 fn fall(time: Res<Time>, mut query: Query<(&mut Transform, &Fruit, Entity)>, mut commands: Commands) {
     for (mut transform, fruit, entity) in &mut query {

@@ -2,8 +2,6 @@ use bevy::prelude::*;
 mod chef;
 mod fruit;
 
-mod animate;
-
 
 fn main() {
     App::new()
