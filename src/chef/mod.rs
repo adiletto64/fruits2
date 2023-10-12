@@ -2,6 +2,12 @@ use bevy::prelude::*;
 use self::sprite::AnimationSlice;
 mod sprite;
 
+use crate::level::LevelUpdate;
+
+
+const SPEED: f32 = 900.;
+const SPEED_UPDATE: f32 = 10.;
+
 
 pub struct ChefPlugin;
 
@@ -9,14 +15,16 @@ impl Plugin for ChefPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
-            .add_systems(Update, (hit, move_chef, animate))
+            .add_systems(Update, (hit, move_chef, animate, update_level))
             .add_event::<FruitHit>();
     }
 }
 
 
 #[derive(Component)]
-struct Player;
+struct Player {
+    speed: f32
+}
 
 
 #[derive(Event)]
@@ -25,19 +33,15 @@ pub struct FruitHit {
 }
 
 
-const SPEED: f32 = 900.;
-
-
-
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
 
-    let sprite = sprite::get_sprite(asset_server, &mut texture_atlases);
+    let sprite = sprite::get_sprite(&asset_server, &mut texture_atlases);
     let animation = sprite::AnimationSlice::new();
-    commands.spawn((sprite, animation, Player));
+    commands.spawn((sprite, animation, Player { speed: SPEED }));
 }
 
 
@@ -61,22 +65,22 @@ fn animate(
 fn move_chef(
     keys: Res<Input<KeyCode>>, 
     time: Res<Time>, 
-    mut query: Query<(&mut Transform, &mut TextureAtlasSprite), With<Player>>
+    mut query: Query<(&mut Transform, &mut TextureAtlasSprite, &Player)>
 ) {
 
     if keys.pressed(KeyCode::Left) {
-        for (mut transform, mut sprite) in &mut query {
+        for (mut transform, mut sprite, player) in &mut query {
             if transform.translation.x > -500. {
                 sprite.flip_x = true;
-                transform.translation.x -= SPEED * time.delta_seconds();                
+                transform.translation.x -= player.speed * time.delta_seconds();                
             }
         }
     }
     else if keys.pressed(KeyCode::Right){
-        for (mut transform, mut sprite) in &mut query {
+        for (mut transform, mut sprite, player) in &mut query {
             if transform.translation.x < 500. {
                 sprite.flip_x = false;
-                transform.translation.x += SPEED * time.delta_seconds();                
+                transform.translation.x += player.speed * time.delta_seconds();                
             }
         }
     }
@@ -97,5 +101,14 @@ fn hit(
 
             animation.trigger_slice();
         }
+    }
+}
+
+
+fn update_level(events: EventReader<LevelUpdate>, mut query: Query<&mut Player>) {
+    if events.len() > 0 {
+        for mut player in &mut query {
+            player.speed += SPEED_UPDATE;
+        }        
     }
 }

@@ -4,34 +4,24 @@ use rand::prelude::*;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 use crate::chef::FruitHit;
+use crate::level::LevelUpdate;
 
-
-pub struct FruitPlugin;
+use super::sprite::{FruitAssets, get_sprite, get_fruit_assets};
 
 
 const SLICE_ANIMATION_SPEED: u64 = 80;
+const MAX_COMBO_FRUITS: i32 = 4;
+const FRUITS_SPAWN_SPAN: (i32, i32) = (-350, 350);
+const LEVEL_UPDATE_SPAWN_INTENSITY_PERCENT: u32 = 95;
 
 
+pub struct FruitPlugin;
 impl Plugin for FruitPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
-            .add_systems(Update, (gen_fruit, fall, hit, animate_slice))
+            .add_systems(Update, (spawn_fruits, fall, hit, animate_slice, update_level))
         ;
-    }
-}
-
-
-#[derive(Resource)]
-struct FruitAssets {
-    images: Vec<Handle<TextureAtlas>>
-}
-
-impl FruitAssets {
-    fn get_random_image(&self) -> Handle<TextureAtlas> {
-        let mut rng = rand::thread_rng();
-        let random_index: usize = rng.gen_range(0..self.images.len());
-        return self.images[random_index].clone();
     }
 }
 
@@ -40,7 +30,6 @@ impl FruitAssets {
 struct Fruit {
     rotation_velocity: f32,
 }
-
 impl Fruit {
     fn new() -> Self { Self { rotation_velocity: randint(-15, 20) as f32 * 0.1 } }
 }
@@ -50,7 +39,6 @@ impl Fruit {
 struct Hit {
     timer: Timer,
 }
-
 impl Hit {
     fn start() -> Self {
         return Self {
@@ -61,7 +49,7 @@ impl Hit {
 
 
 #[derive(Resource)]
-struct FruitGenerationTimer(Timer);
+struct FruitSpawnTimer(Timer);
 
 
 fn setup(
@@ -69,64 +57,43 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    let image_names = ["apple-frames.png", "strawberry.png", "orange.png"];
-    let mut images: Vec<Handle<TextureAtlas>> = Vec::new();
-
-    for name in image_names {
-        let texture = TextureAtlas::from_grid(
-            asset_server.load(name),
-            Vec2::new(40.0, 40.0),
-            4,
-            1,
-            None,
-            None
-        );
-
-        let handle = texture_atlases.add(texture);
-
-        images.push(handle);
-    }
-
-    let fruit_assets = FruitAssets {
-        images: images
-    };
-
-    commands.insert_resource(fruit_assets);
+    commands.insert_resource(get_fruit_assets(asset_server, &mut texture_atlases));
     commands.insert_resource(
-        FruitGenerationTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating))
+        FruitSpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating))
     );
 }
 
 
-fn gen_fruit(
+fn spawn_fruits(
     time: Res<Time>,
-    mut timer: ResMut<FruitGenerationTimer>,
+    mut timer: ResMut<FruitSpawnTimer>,
     fruit_assets: Res<FruitAssets>,
     mut commands: Commands 
 ){
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let combo = randint(1, 4);
-        let x_axis = randint(-400, 400) as f32;
+        let combo = randint(1, MAX_COMBO_FRUITS);
+        let x_axis = randint(FRUITS_SPAWN_SPAN.0, FRUITS_SPAWN_SPAN.1) as f32;
 
         for i in 0..combo {
-            let sprite = SpriteSheetBundle {
-                texture_atlas: fruit_assets.get_random_image(),
-                sprite: TextureAtlasSprite::new(0),
-                transform: Transform::from_xyz(
-                    x_axis, 350. + 40. * i as f32, 1.)
-                    .with_scale(Vec3::splat(3.5)),
-                ..default()
-            };
-
+            let sprite = get_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
             commands.spawn((sprite, Fruit::new()));            
         }
-
-        timer.0.set_duration(Duration::from_millis(randint(500, 1500) as u64));
-
     }
 }
+
+
+fn update_level(
+    events: EventReader<LevelUpdate>,
+    mut spawn_timer: ResMut<FruitSpawnTimer>
+) {
+    if events.len() > 0 {
+        let duration = spawn_timer.0.duration();
+        spawn_timer.0.set_duration(duration / 100 * LEVEL_UPDATE_SPAWN_INTENSITY_PERCENT);        
+    }
+}
+
 
 
 fn hit(

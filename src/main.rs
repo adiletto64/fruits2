@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 mod chef;
-mod fruit;
+mod fruits;
+mod level;
 
 
 fn main() {
@@ -17,7 +18,8 @@ fn main() {
                     ..default()
                 })
         )
-        .add_plugins((chef::ChefPlugin, fruit::FruitPlugin))
+        .add_plugins(level::LevelPlugin)
+        .add_plugins((chef::ChefPlugin, fruits::fruit::FruitPlugin))
         .add_systems(Startup, setup)
         .run();
 }
