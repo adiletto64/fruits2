@@ -5,7 +5,7 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
     let texture_atlas =TextureAtlas::from_grid(
         asset_server.load("chef2.png"), 
         Vec2::new(40.0, 40.0),
-        8, 
+        9, 
         1, 
         None,
         None
@@ -25,7 +25,8 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
 #[derive(PartialEq, Debug)]
 pub enum ChefState {
     Slice,
-    Waiting
+    Waiting,
+    Bag
 }
 
 
@@ -37,9 +38,19 @@ pub struct AnimationSlice {
 }
 
 impl AnimationSlice {
+    pub fn normal(&mut self) {
+        self.state = ChefState::Waiting;
+        self.index = 0;
+    }
+
     pub fn trigger_slice(&mut self) {
         self.state = ChefState::Slice;
         self.index = 2;
+    }
+
+    pub fn pullout_trash_bag(&mut self) {
+        self.state = ChefState::Bag;
+        self.index = 8;
     }
 
     pub fn update(&mut self) {
@@ -58,6 +69,9 @@ impl AnimationSlice {
                     self.state = ChefState::Waiting;
                 } 
             },
+            ChefState::Bag => {
+                self.index = 8;
+            }
         }
     }
 

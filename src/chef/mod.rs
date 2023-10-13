@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use self::sprite::AnimationSlice;
-mod sprite;
 
+mod sprite;
+use self::sprite::AnimationSlice;
 use crate::level::LevelUpdate;
 
 
@@ -10,12 +10,17 @@ const SPEED_UPDATE: f32 = 10.;
 
 
 pub struct ChefPlugin;
-
 impl Plugin for ChefPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
-            .add_systems(Update, (hit, move_chef, animate, update_level))
+            .add_systems(Update, (
+                hit, 
+                walk, 
+                collect_rotten_fruits, 
+                animate, 
+                update_level
+            ))
             .add_event::<FruitHit>();
     }
 }
@@ -41,6 +46,7 @@ fn setup(
 
     let sprite = sprite::get_sprite(&asset_server, &mut texture_atlases);
     let animation = sprite::AnimationSlice::new();
+
     commands.spawn((sprite, animation, Player { speed: SPEED }));
 }
 
@@ -62,22 +68,23 @@ fn animate(
 }
 
 
-fn move_chef(
+fn walk(
     keys: Res<Input<KeyCode>>, 
     time: Res<Time>, 
     mut query: Query<(&mut Transform, &mut TextureAtlasSprite, &Player)>
 ) {
-
-    if keys.pressed(KeyCode::Left) {
-        for (mut transform, mut sprite, player) in &mut query {
+    for (
+        mut transform, 
+        mut sprite, 
+        player
+    ) in &mut query {
+        if keys.pressed(KeyCode::Left) {
             if transform.translation.x > -500. {
                 sprite.flip_x = true;
                 transform.translation.x -= player.speed * time.delta_seconds();                
             }
         }
-    }
-    else if keys.pressed(KeyCode::Right){
-        for (mut transform, mut sprite, player) in &mut query {
+        else if keys.pressed(KeyCode::Right){
             if transform.translation.x < 500. {
                 sprite.flip_x = false;
                 transform.translation.x += player.speed * time.delta_seconds();                
@@ -93,13 +100,29 @@ fn hit(
     mut query: Query<(&Transform, &mut AnimationSlice), With<Player>>,
 ) { 
     if keys.just_pressed(KeyCode::Space) {
-
         for (transform, mut animation) in &mut query {
             event.send(FruitHit {
                 translation: transform.translation
             });
-
             animation.trigger_slice();
+        }
+    }
+}
+
+
+fn collect_rotten_fruits(
+    keys: Res<Input<KeyCode>>,
+    mut query: Query<&mut AnimationSlice, With<Player>>
+) {
+
+    if keys.pressed(KeyCode::S) || keys.just_pressed(KeyCode::S) {
+        for mut animation in &mut query {
+            animation.pullout_trash_bag();
+        }
+    }
+    else if keys.just_released(KeyCode::S) {
+        for mut animation in &mut query {
+            animation.normal();
         }
     }
 }

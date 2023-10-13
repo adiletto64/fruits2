@@ -1,6 +1,7 @@
 use std::time::Duration;
 use bevy::prelude::*;
 
+use crate::text::Info;
 
 const LEVEL_UPDATE_TIME: u64 = 8;
 
@@ -20,17 +21,23 @@ impl Plugin for LevelPlugin {
 
 
 #[derive(Event)]
-pub struct LevelUpdate;
+pub struct LevelUpdate {
+    number: u32
+}
 
 
 #[derive(Resource)]
-struct LevelTimer { timer: Timer }
+struct Level { 
+    timer: Timer, 
+    number: u32
+}
 
 
 fn startup(mut commands: Commands) {
     commands.insert_resource(
-        LevelTimer {
+        Level {
             timer: Timer::new(Duration::from_secs(LEVEL_UPDATE_TIME), TimerMode::Repeating),
+            number: 1
         }
     );
 }
@@ -38,12 +45,15 @@ fn startup(mut commands: Commands) {
 
 fn update_level(
     time: Res<Time>,
-    mut level: ResMut<LevelTimer>,
-    mut event: EventWriter<LevelUpdate>
+    mut level: ResMut<Level>,
+    mut event: EventWriter<LevelUpdate>,
+    mut info: ResMut<Info>
 ) {
     level.timer.tick(time.delta());
 
     if level.timer.finished() {
-        event.send(LevelUpdate);
+        level.number += 1;
+        event.send(LevelUpdate { number: level.number });
+        info.level = level.number;
     }
 }

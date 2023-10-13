@@ -1,17 +1,17 @@
 use std::time::Duration;
 
-use rand::prelude::*;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
+use crate::random::randint;
 use crate::chef::FruitHit;
 use crate::level::LevelUpdate;
+use crate::text::Info;
 
-use super::sprite::{FruitAssets, get_sprite, get_fruit_assets};
+use super::sprite::get_fruit_assets;
+use super::spawn::{spawn_fruits, FruitSpawnTimer};
 
 
 const SLICE_ANIMATION_SPEED: u64 = 80;
-const MAX_COMBO_FRUITS: i32 = 4;
-const FRUITS_SPAWN_SPAN: (i32, i32) = (-350, 350);
 const LEVEL_UPDATE_SPAWN_INTENSITY_PERCENT: u32 = 95;
 
 
@@ -26,12 +26,28 @@ impl Plugin for FruitPlugin {
 }
 
 
-#[derive(Component)]
-struct Fruit {
-    rotation_velocity: f32,
+#[derive(PartialEq, Eq)]
+pub enum FruitType {
+    RIPE,
+    PINEAPPLE
 }
+
+
+#[derive(Component)]
+pub struct Fruit {
+    pub rotation_velocity: f32,
+    sliced: bool,
+    pub fruit_type: FruitType
+}
+
 impl Fruit {
-    fn new() -> Self { Self { rotation_velocity: randint(-15, 20) as f32 * 0.1 } }
+    pub fn new() -> Self { 
+        Self { 
+            rotation_velocity: randint(-15, 20) as f32 * 0.1, 
+            sliced: false,
+            fruit_type: FruitType::RIPE
+        } 
+    }
 }
 
 
@@ -48,9 +64,6 @@ impl Hit {
 }
 
 
-#[derive(Resource)]
-struct FruitSpawnTimer(Timer);
-
 
 fn setup(
     mut commands: Commands,
@@ -58,29 +71,7 @@ fn setup(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands.insert_resource(get_fruit_assets(asset_server, &mut texture_atlases));
-    commands.insert_resource(
-        FruitSpawnTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating))
-    );
-}
-
-
-fn spawn_fruits(
-    time: Res<Time>,
-    mut timer: ResMut<FruitSpawnTimer>,
-    fruit_assets: Res<FruitAssets>,
-    mut commands: Commands 
-){
-    timer.0.tick(time.delta());
-
-    if timer.0.finished() {
-        let combo = randint(1, MAX_COMBO_FRUITS);
-        let x_axis = randint(FRUITS_SPAWN_SPAN.0, FRUITS_SPAWN_SPAN.1) as f32;
-
-        for i in 0..combo {
-            let sprite = get_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
-            commands.spawn((sprite, Fruit::new()));            
-        }
-    }
+    commands.insert_resource(FruitSpawnTimer::new());
 }
 
 
@@ -98,23 +89,44 @@ fn update_level(
 
 fn hit(
     mut events: EventReader<FruitHit>, 
-    mut query: Query<(&Transform, Entity), With<Fruit>>,
+    mut query: Query<(&Transform, Entity, &mut Fruit), With<Fruit>>,
     mut commands: Commands,
+    mut info: ResMut<Info>
 ) {
     for event in events.iter() {
-        for (transform, entity) in &mut query {
+        let mut pinapple_hit = false;
+
+        for (transform, entity, mut fruit) in &mut query {
             if collide(
                 transform.translation, 
-                Vec2::new(140., 240.), 
+                Vec2::new(140., 260.), 
                 event.translation, 
                 Vec2::new(40., 40.), 
             ).is_some() {
+                if !fruit.sliced {
+                    commands.entity(entity).insert(Hit::start());
+                    info.score += 1;
+                }
+                fruit.sliced = true;
 
-                commands.entity(entity).insert(Hit::start());
+                if fruit.fruit_type == FruitType::PINEAPPLE {
+                    pinapple_hit = true;
+                }
+
+            }
+        }
+
+        if pinapple_hit {
+            for (_, entity, fruit) in &mut query {
+                if !fruit.sliced {
+                    commands.entity(entity).insert(Hit::start());
+                    info.score += 1;
+                }
             }
         }
     }
 }
+
 
 fn fall(time: Res<Time>, mut query: Query<(&mut Transform, &Fruit, Entity)>, mut commands: Commands) {
     for (mut transform, fruit, entity) in &mut query {
@@ -128,14 +140,6 @@ fn fall(time: Res<Time>, mut query: Query<(&mut Transform, &Fruit, Entity)>, mut
 }
 
 
-
-fn randint(min: i32, max: i32) -> i32 {
-    let mut rng = rand::thread_rng();
-    return rng.gen_range(min..max);
-}
-
-
-
 fn animate_slice(
     time: Res<Time>,
     mut query: Query<(&mut TextureAtlasSprite, &mut Hit, Entity), With<Fruit>>,
@@ -145,7 +149,7 @@ fn animate_slice(
     for (mut sprite, mut hit, entity) in query.iter_mut() {
         hit.timer.tick(time.delta());
         if hit.timer.just_finished() {
-            if sprite.index == 3 { 
+            if sprite.index == 5 { 
                 commands.entity(entity).remove::<Hit>();
             }
             else {
