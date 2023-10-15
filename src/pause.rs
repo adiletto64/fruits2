@@ -29,10 +29,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     }, PauseItem));
 
-    let title = text(&asset_server, "Paused", 0., 180., 70.);
+    let title = text(&asset_server, "Paused", 0., 100., 70.);
     commands.spawn((title, PauseItem));
 
-    let enter_game_text = text(&asset_server, "Press --esc-- to continue!", 0., 10., 40.);
+    let enter_game_text = text(&asset_server, "Press --Enter-- to continue!", 0., 10., 40.);
     commands.spawn((enter_game_text, PauseItem));
 }
 

@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::session::Session;
+
 
 pub struct InfoPlugin;
 
@@ -17,29 +19,12 @@ impl Plugin for InfoPlugin {
 struct TextInfo;
 
 
-#[derive(Resource, Clone)]
-pub struct Info {
-    pub level: u32,
-    pub lives_left: u32,
-    pub score: u32
-}
-
-impl Info {
-    fn default() -> Self {
-        Self { level: 1, lives_left: 3, score: 0 }
-    }
-    fn text(&self) -> String {
-        format!("Current level: {}\nLive left: {}\nscore: {}", self.level, self.lives_left, self.score)
-    }
-}
-
-
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
-    let info = Info::default();
+    let session = Session::default();
 
-    commands.insert_resource(info.clone());
-    let text = info.text();
+    commands.insert_resource(session.clone());
+    let text = session.text();
 
     let text_style = TextStyle {
         font: asset_server.load("fonts/mn-regular.otf"),
@@ -56,7 +41,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 
-fn update(mut query: Query<&mut Text, With<TextInfo>>, info: Res<Info>) {
+fn update(mut query: Query<&mut Text, With<TextInfo>>, info: Res<Session>) {
     for mut text in &mut query {
         text.sections[0].value = info.text();
     }

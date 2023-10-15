@@ -5,7 +5,7 @@ use bevy::{prelude::*, sprite::collide_aabb::collide};
 use crate::random::randint;
 use crate::chef::FruitHit;
 use crate::level::LevelUpdate;
-use crate::info::Info;
+use crate::session::Session;
 use crate::state::AppState;
 
 use super::sprite::get_fruit_assets;
@@ -36,7 +36,7 @@ impl Plugin for FruitPlugin {
 }
 
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum FruitType {
     RIPE,
     PINEAPPLE
@@ -79,9 +79,14 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    query: Query<Entity, With<Fruit>>
 ) {
     commands.insert_resource(get_fruit_assets(asset_server, &mut texture_atlases));
     commands.insert_resource(FruitSpawnTimer::new());
+
+    for entity in &query {
+        commands.entity(entity).despawn();
+    }
 }
 
 
@@ -101,7 +106,7 @@ fn hit(
     mut events: EventReader<FruitHit>, 
     mut query: Query<(&Transform, Entity, &mut Fruit), With<Fruit>>,
     mut commands: Commands,
-    mut info: ResMut<Info>
+    mut session: ResMut<Session>
 ) {
     for event in events.iter() {
         let mut pinapple_hit = false;
@@ -115,10 +120,9 @@ fn hit(
             ).is_some() {
                 if !fruit.sliced {
                     commands.entity(entity).insert(Hit::start());
-                    info.score += 1;
+                    session.score += 1;
                 }
                 fruit.sliced = true;
-
                 if fruit.fruit_type == FruitType::PINEAPPLE {
                     pinapple_hit = true;
                 }
@@ -127,10 +131,11 @@ fn hit(
         }
 
         if pinapple_hit {
-            for (_, entity, fruit) in &mut query {
+            for (_, entity, mut fruit) in &mut query {
                 if !fruit.sliced {
+                    fruit.sliced = true;
                     commands.entity(entity).insert(Hit::start());
-                    info.score += 1;
+                    session.score += 1;
                 }
             }
         }
@@ -138,12 +143,20 @@ fn hit(
 }
 
 
-fn fall(time: Res<Time>, mut query: Query<(&mut Transform, &Fruit, Entity)>, mut commands: Commands) {
+fn fall(
+    time: Res<Time>, 
+    mut query: Query<(&mut Transform, &Fruit, Entity)>, 
+    mut commands: Commands,
+    mut session: ResMut<Session>
+) {
     for (mut transform, fruit, entity) in &mut query {
         transform.translation.y -= 400.0 * time.delta_seconds();
         transform.rotate_z(fruit.rotation_velocity.to_radians());
 
         if transform.translation.y <= -400.0 {
+            if !fruit.sliced {
+                session.lives_left -= 1;
+            }
             commands.entity(entity).despawn();
         }
     }

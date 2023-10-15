@@ -1,10 +1,10 @@
 use std::time::Duration;
 use bevy::prelude::*;
 
-use crate::info::Info;
+use crate::session::Session;
 use crate::state::AppState;
 
-const LEVEL_UPDATE_TIME: u64 = 8;
+const LEVEL_UPDATE_TIME: u64 = 4;
 
 
 pub struct LevelPlugin;
@@ -23,6 +23,7 @@ impl Plugin for LevelPlugin {
 
 #[derive(Event)]
 pub struct LevelUpdate {
+    #[allow(dead_code)]
     number: u32
 }
 
@@ -48,13 +49,13 @@ fn update_level(
     time: Res<Time>,
     mut level: ResMut<Level>,
     mut event: EventWriter<LevelUpdate>,
-    mut info: ResMut<Info>
+    mut session: ResMut<Session>
 ) {
     level.timer.tick(time.delta());
 
     if level.timer.finished() {
         level.number += 1;
         event.send(LevelUpdate { number: level.number });
-        info.level = level.number;
+        session.level = level.number;
     }
 }

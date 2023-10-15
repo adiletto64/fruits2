@@ -15,6 +15,7 @@ mod info;
 mod menu;
 mod session;
 mod pause;
+mod finish;
 
 mod state;
 mod ui;
@@ -25,7 +26,7 @@ fn main() {
     App::new()
         .add_plugins(settings())
         .add_state::<state::AppState>()
-        .add_plugins((menu::MenuPlugin, session::SessionPlugin, pause::PausePlugin))
+        .add_plugins((menu::MenuPlugin, session::SessionPlugin, pause::PausePlugin, finish::FinishPlugin))
         .add_systems(Startup, setup)
         .run();
 }
