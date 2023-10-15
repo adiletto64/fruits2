@@ -1,7 +1,8 @@
 use std::time::Duration;
 use bevy::prelude::*;
 
-use crate::text::Info;
+use crate::info::Info;
+use crate::state::AppState;
 
 const LEVEL_UPDATE_TIME: u64 = 8;
 
@@ -13,7 +14,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, startup)
-            .add_systems(Update, update_level)
+            .add_systems(Update, update_level.run_if(in_state(AppState::InGame)))
             .add_event::<LevelUpdate>();
     }
 }

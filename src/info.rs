@@ -42,7 +42,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let text = info.text();
 
     let text_style = TextStyle {
-        font: asset_server.load("fonts/PixelifySans-Regular.ttf"),
+        font: asset_server.load("fonts/mn-regular.otf"),
         font_size: 32.,
         color: Color::WHITE
     };

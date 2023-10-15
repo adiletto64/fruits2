@@ -5,7 +5,8 @@ use bevy::{prelude::*, sprite::collide_aabb::collide};
 use crate::random::randint;
 use crate::chef::FruitHit;
 use crate::level::LevelUpdate;
-use crate::text::Info;
+use crate::info::Info;
+use crate::state::AppState;
 
 use super::sprite::get_fruit_assets;
 use super::spawn::{spawn_fruits, FruitSpawnTimer};
@@ -19,8 +20,17 @@ pub struct FruitPlugin;
 impl Plugin for FruitPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Startup, setup)
-            .add_systems(Update, (spawn_fruits, fall, hit, animate_slice, update_level))
+            .add_systems(OnEnter::<AppState>(AppState::InGame), setup)
+            .add_systems(
+                Update, 
+                (
+                    spawn_fruits, 
+                    fall, 
+                    hit, 
+                    animate_slice, 
+                    update_level
+                ).run_if(in_state(AppState::InGame))
+            )
         ;
     }
 }

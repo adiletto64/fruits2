@@ -2,13 +2,34 @@
 // https://bevy-cheatbook.github.io/platforms/windows.html#disabling-the-windows-console
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::prelude::*;
+use std::time::Duration;
+
+use bevy::{prelude::*, asset::ChangeWatcher};
 
 mod chef;
 mod fruits;
 mod level;
 mod random;
-mod text;
+mod info;
+
+mod menu;
+mod session;
+mod pause;
+
+mod state;
+mod ui;
+
+
+
+fn main() {
+    App::new()
+        .add_plugins(settings())
+        .add_state::<state::AppState>()
+        .add_plugins((menu::MenuPlugin, session::SessionPlugin, pause::PausePlugin))
+        .add_systems(Startup, setup)
+        .run();
+}
+
 
 
 fn settings() -> bevy::app::PluginGroupBuilder {
@@ -22,16 +43,10 @@ fn settings() -> bevy::app::PluginGroupBuilder {
             }),
             ..default()
         })
-}
-
-
-fn main() {
-    App::new()
-        .add_plugins(settings())
-        .add_plugins(level::LevelPlugin)
-        .add_plugins((chef::ChefPlugin, fruits::fruit::FruitPlugin, text::InfoPlugin))
-        .add_systems(Startup, setup)
-        .run();
+        .set(AssetPlugin {
+            watch_for_changes: ChangeWatcher::with_delay(Duration::from_secs(1)),
+            ..default()
+        })
 }
 
 
@@ -41,7 +56,7 @@ fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
     // add background image
     commands.spawn(SpriteBundle {
         texture: assert_server.load("bg.png"),
-        transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(15.)),
+        transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(7.5)),
         ..default()
     });
 }
