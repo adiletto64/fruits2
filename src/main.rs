@@ -56,7 +56,7 @@ fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
 
     // add background image
     commands.spawn(SpriteBundle {
-        texture: assert_server.load("bg.png"),
+        texture: assert_server.load("images/bg.png"),
         transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(7.5)),
         ..default()
     });

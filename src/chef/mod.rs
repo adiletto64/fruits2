@@ -31,6 +31,8 @@ struct Player {
     speed: f32
 }
 
+#[derive(Component)]
+struct Slash;
 
 #[derive(Event)]
 pub struct FruitHit {
@@ -47,7 +49,13 @@ fn setup(
     let sprite = sprite::get_sprite(&asset_server, &mut texture_atlases);
     let animation = sprite::AnimationSlice::new();
 
-    commands.spawn((sprite, animation, Player { speed: SPEED }));
+    commands.spawn(
+        (
+            sprite, 
+            animation, 
+            Player { speed: SPEED }, 
+        )
+    );
 }
 
 
@@ -95,6 +103,8 @@ fn walk(
 
 
 fn hit(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>, 
     mut event: EventWriter<FruitHit>,
     mut query: Query<(&Transform, &mut AnimationSlice), With<Player>>,
@@ -105,6 +115,18 @@ fn hit(
                 translation: transform.translation
             });
             animation.trigger_slice();
+
+            let slash = AudioBundle {
+                source: asset_server.load("audio/slash.ogg"), 
+                settings: PlaybackSettings {
+                    speed: 1.5,
+                    ..default()
+                },
+                ..default()
+            };
+
+            commands.spawn((slash, Slash));
+            
         }
     }
 }

@@ -27,12 +27,13 @@ impl Plugin for SessionPlugin {
 pub struct Session {
     pub level: u32,
     pub lives_left: u32,
-    pub score: u32
+    pub score: u32,
+    pub boosts: u32
 }
 
 impl Session {
     pub fn default() -> Self {
-        Self { level: 1, lives_left: 3, score: 0 }
+        Self { level: 1, lives_left: 3, score: 0, boosts: 0 }
     }
     pub fn text(&self) -> String {
         format!("Current level: {}\nLive left: {}\nscore: {}", self.level, self.lives_left, self.score)

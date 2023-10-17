@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> SpriteSheetBundle {
     let texture_atlas =TextureAtlas::from_grid(
-        asset_server.load("chef2.png"), 
+        asset_server.load("images/chef2.png"), 
         Vec2::new(40.0, 40.0),
         9, 
         1, 

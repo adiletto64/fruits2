@@ -26,7 +26,7 @@ struct FinishItem;
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, session: Res<Session>) {
     // add background image
     commands.spawn((SpriteBundle {
-        texture: asset_server.load("menu.png"),
+        texture: asset_server.load("images/menu.png"),
         transform: Transform::from_xyz(0., 0., 10.).with_scale(Vec3::splat(7.5)),
         ..default()
     }, FinishItem));

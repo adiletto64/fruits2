@@ -18,7 +18,7 @@ impl FruitAssets {
 
 
 pub fn get_sprite(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteSheetBundle {
-    let transform = Transform::from_xyz(x, y, 1.).with_scale(Vec3::splat(3.5));
+    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.5));
 
     return SpriteSheetBundle {
         texture_atlas: fruit_assets.get_random_image(),
@@ -30,7 +30,7 @@ pub fn get_sprite(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteShee
 
 
 pub fn get_pineapple(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteSheetBundle {
-    let transform = Transform::from_xyz(x, y, 1.).with_scale(Vec3::splat(5.));
+    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(5.));
 
     return SpriteSheetBundle {
         texture_atlas: fruit_assets.pineapple.clone(),
@@ -42,19 +42,19 @@ pub fn get_pineapple(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteS
 
 
 
-pub fn get_fruit_assets(asset_server: Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> FruitAssets {
+pub fn get_fruit_assets(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> FruitAssets {
     let image_names = ["apple-frames.png", "strawberry.png", "orange.png"];
     let mut images: Vec<Handle<TextureAtlas>> = Vec::new();
 
     for name in image_names {
-        let image = asset_server.load(name);
+        let image = asset_server.load("images/fruits/".to_owned() + name);
         let texture = get_texture(image);
         let handle = texture_atlases.add(texture);
 
         images.push(handle);
     }
 
-    let pineapple_texture = get_texture(asset_server.load("pineapple.png"));
+    let pineapple_texture = get_texture(asset_server.load("images/fruits/pineapple.png"));
     let pineapple_handle = texture_atlases.add(pineapple_texture);
 
     return FruitAssets {
@@ -67,8 +67,8 @@ pub fn get_fruit_assets(asset_server: Res<AssetServer>, texture_atlases: &mut Re
 fn get_texture(image: Handle<Image>) -> TextureAtlas {
     TextureAtlas::from_grid(
         image,
-        Vec2::new(40.0, 40.0),
-        6,
+        Vec2::new(60.0, 60.0),
+        8,
         1,
         None,
         None

@@ -24,12 +24,16 @@ struct MenuItem;
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // add background image
     commands.spawn((SpriteBundle {
-        texture: asset_server.load("menu.png"),
+        texture: asset_server.load("images/menu.png"),
         transform: Transform::from_xyz(0., 0., 10.).with_scale(Vec3::splat(7.5)),
         ..default()
     }, MenuItem));
 
-    let title = text(&asset_server, "Fruits 2", 0., 180., 90.);
+    let title = SpriteBundle {
+        texture: asset_server.load("images/title.png"),
+        transform: Transform::from_xyz(0., 140., 11.).with_scale(Vec3::splat(5.)),
+        ..default()
+    };
     commands.spawn((title, MenuItem));
 
     let enter_game_text = text(&asset_server, "Press --Enter-- to start!", 0., 10., 40.);
