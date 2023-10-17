@@ -8,9 +8,11 @@ use crate::level::LevelUpdate;
 use crate::session::Session;
 use crate::state::AppState;
 
-use super::sprite::get_fruit_assets;
+use super::sprite::FruitTextures;
 use super::spawn::{spawn_fruits, FruitSpawnTimer};
 
+
+const FALL_SPEED: f32 = 400.;
 
 const SLICE_ANIMATION_SPEED: u64 = 80;
 const LEVEL_UPDATE_SPAWN_INTENSITY_PERCENT: u32 = 95;
@@ -25,10 +27,11 @@ impl Plugin for FruitPlugin {
                 Update, 
                 (
                     spawn_fruits, 
-                    fall, 
+                    fall,
+                    despawn_fallen_fruits,
                     hit, 
                     animate_slice, 
-                    update_level
+                    increase_spawn_intensity,
                 ).run_if(in_state(AppState::InGame))
             )
         ;
@@ -46,8 +49,10 @@ pub enum FruitType {
 #[derive(Component)]
 pub struct Fruit {
     pub rotation_velocity: f32,
+    pub fruit_type: FruitType,
     sliced: bool,
-    pub fruit_type: FruitType
+    spread_speed: f32,
+    fall_speed: f32
 }
 
 impl Fruit {
@@ -55,22 +60,16 @@ impl Fruit {
         Self { 
             rotation_velocity: randint(-15, 20) as f32 * 0.1, 
             sliced: false,
-            fruit_type: FruitType::RIPE
+            fruit_type: FruitType::RIPE,
+            spread_speed: 0.,
+            fall_speed: FALL_SPEED
         } 
     }
 }
 
-
 #[derive(Component)]
 struct Hit {
     timer: Timer,
-}
-impl Hit {
-    fn start() -> Self {
-        return Self {
-            timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating),
-        }
-    }
 }
 
 
@@ -80,7 +79,7 @@ fn setup(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     query: Query<Entity, With<Fruit>>
 ) {
-    commands.insert_resource(get_fruit_assets(&asset_server, &mut texture_atlases));
+    commands.insert_resource(FruitTextures::new(&asset_server, &mut texture_atlases));
     commands.insert_resource(FruitSpawnTimer::new());
 
     for entity in &query {
@@ -89,11 +88,11 @@ fn setup(
 }
 
 
-fn update_level(
+fn increase_spawn_intensity(
     events: EventReader<LevelUpdate>,
     mut spawn_timer: ResMut<FruitSpawnTimer>
 ) {
-    if events.len() > 0 {
+    if !events.is_empty() {
         let duration = spawn_timer.0.duration();
         spawn_timer.0.set_duration(duration / 100 * LEVEL_UPDATE_SPAWN_INTENSITY_PERCENT);        
     }
@@ -109,37 +108,35 @@ fn hit(
     asset_server: Res<AssetServer>
 ) {
     for event in events.iter() {
-        let mut added = false;
+        let mut sound_created = false;
 
         for (transform, entity, mut fruit) in &mut query {
-            if collide(
-                transform.translation, 
-                Vec2::new(140., 260.), 
-                event.translation, 
-                Vec2::new(40., 40.), 
-            ).is_some() {
+            let hit_the_fruit = collide(
+                transform.translation, Vec2::new(140., 220.), 
+                event.translation, Vec2::new(40., 40.), 
+            ).is_some();
+
+            if hit_the_fruit {
                 if !fruit.sliced {
-                    commands.entity(entity).insert(Hit::start());
+                    commands.entity(entity).insert(
+                        Hit { 
+                            timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating)
+                        }
+                    );
+
                     session.score += 1;
+                    fruit.spread_speed = (randint(-5, 5) as f32) * 100.;
+                    fruit.fall_speed += 100.;
+                    fruit.sliced = true;
                 }
-                fruit.sliced = true;
+                
                 if fruit.fruit_type == FruitType::PINEAPPLE {
                     session.boosts += 1;
                 }
 
-                if !added {
-                    commands.entity(entity).insert(
-                        AudioBundle{
-                            source: asset_server.load("audio/splat1.ogg"), 
-                            settings: PlaybackSettings {
-                                speed: 1.5,
-                                ..default()
-                            },
-                            ..default()
-                        }
-                    );  
-
-                    added = true;                  
+                if !sound_created {
+                    commands.spawn(get_splat_audio(&asset_server));
+                    sound_created = true;
                 }
             }
         }
@@ -149,15 +146,28 @@ fn hit(
 
 fn fall(
     time: Res<Time>, 
-    mut query: Query<(&mut Transform, &Fruit, Entity)>, 
+    mut query: Query<(&mut Transform, &mut Fruit)>, 
+) {
+    for (mut transform, mut fruit) in &mut query {
+        transform.translation.y -= fruit.fall_speed * time.delta_seconds();
+        transform.rotate_z(fruit.rotation_velocity.to_radians());
+
+        if fruit.spread_speed != 0. {
+            fruit.spread_speed *= 0.9;
+        }
+
+        transform.translation.x += fruit.spread_speed * time.delta_seconds();
+    }
+}
+
+
+fn despawn_fallen_fruits(
+    query: Query<(&Transform, &Fruit, Entity)>, 
     mut commands: Commands,
     mut session: ResMut<Session>
 ) {
-    for (mut transform, fruit, entity) in &mut query {
-        transform.translation.y -= 400.0 * time.delta_seconds();
-        transform.rotate_z(fruit.rotation_velocity.to_radians());
-
-        if transform.translation.y <= -450.0 {
+    for (transform, fruit, entity) in &query {
+        if transform.translation.y <= -480.0 {
             if !fruit.sliced {
                 session.lives_left -= 1;
             }
@@ -183,5 +193,17 @@ fn animate_slice(
                 sprite.index += 1;
             }
         }        
+    }
+}
+
+
+fn get_splat_audio(asset_server: &Res<AssetServer>) -> AudioBundle {
+    AudioBundle{
+        source: asset_server.load("audio/splat1.ogg"), 
+        settings: PlaybackSettings {
+            speed: 1.5,
+            ..default()
+        },
+        ..default()
     }
 }

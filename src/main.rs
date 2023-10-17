@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use bevy::{prelude::*, asset::ChangeWatcher};
+use bevy::{prelude::*, asset::ChangeWatcher, audio::VolumeLevel};
 
 mod chef;
 mod fruits;
@@ -53,11 +53,21 @@ fn settings() -> bevy::app::PluginGroupBuilder {
 
 fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
-
     // add background image
     commands.spawn(SpriteBundle {
         texture: assert_server.load("images/bg.png"),
         transform: Transform::from_xyz(0., 0., -1.).with_scale(Vec3::splat(7.5)),
+        ..default()
+    });
+
+    commands.spawn(AudioBundle {
+        source: assert_server.load("audio/bg.ogg"),
+        settings: PlaybackSettings { 
+            mode: bevy::audio::PlaybackMode::Loop, 
+            speed: 1.5, 
+            paused: false,
+            volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.3))
+        },
         ..default()
     });
 }

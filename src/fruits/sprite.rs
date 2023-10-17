@@ -2,22 +2,50 @@ use bevy::prelude::*;
 use rand::Rng;
 
 
+const FRUIT_IMAGES: [&str; 3] = [
+    "apple-frames.png", 
+    "strawberry.png", 
+    "orange.png"
+];
+
+
+
 #[derive(Resource)]
-pub struct FruitAssets {
-    images: Vec<Handle<TextureAtlas>>,
-    pineapple: Handle<TextureAtlas>
+pub struct FruitTextures {
+    textures: Vec<Handle<TextureAtlas>>,
+    pineapple_texture: Handle<TextureAtlas>
 }
 
-impl FruitAssets {
+impl FruitTextures {
     fn get_random_image(&self) -> Handle<TextureAtlas> {
         let mut rng = rand::thread_rng();
-        let random_index: usize = rng.gen_range(0..self.images.len());
-        return self.images[random_index].clone();
+        let random_index: usize = rng.gen_range(0..self.textures.len());
+        return self.textures[random_index].clone();
+    }
+
+    pub fn new(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> Self {
+        let mut textures: Vec<Handle<TextureAtlas>> = Vec::new();
+
+        for name in FRUIT_IMAGES {
+            let image = asset_server.load("images/fruits/".to_owned() + name);
+            let texture = get_texture(image);
+            let handle = texture_atlases.add(texture);
+    
+            textures.push(handle);
+        }
+    
+        let pineapple = get_texture(asset_server.load("images/fruits/pineapple.png"));
+        let pineapple_texture = texture_atlases.add(pineapple);
+    
+        return FruitTextures {
+            textures: textures,
+            pineapple_texture: pineapple_texture
+        };
     }
 }
 
 
-pub fn get_sprite(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteSheetBundle {
+pub fn create_sprite(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> SpriteSheetBundle {
     let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.5));
 
     return SpriteSheetBundle {
@@ -29,37 +57,14 @@ pub fn get_sprite(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteShee
 }
 
 
-pub fn get_pineapple(fruit_assets: &Res<FruitAssets>, x: f32, y: f32) -> SpriteSheetBundle {
+pub fn create_pineapple(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> SpriteSheetBundle {
     let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(5.));
 
     return SpriteSheetBundle {
-        texture_atlas: fruit_assets.pineapple.clone(),
+        texture_atlas: fruit_assets.pineapple_texture.clone(),
         sprite: TextureAtlasSprite::new(0),
         transform: transform,
         ..default()
-    };
-}
-
-
-
-pub fn get_fruit_assets(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> FruitAssets {
-    let image_names = ["apple-frames.png", "strawberry.png", "orange.png"];
-    let mut images: Vec<Handle<TextureAtlas>> = Vec::new();
-
-    for name in image_names {
-        let image = asset_server.load("images/fruits/".to_owned() + name);
-        let texture = get_texture(image);
-        let handle = texture_atlases.add(texture);
-
-        images.push(handle);
-    }
-
-    let pineapple_texture = get_texture(asset_server.load("images/fruits/pineapple.png"));
-    let pineapple_handle = texture_atlases.add(pineapple_texture);
-
-    return FruitAssets {
-        images: images,
-        pineapple: pineapple_handle
     };
 }
 

@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 
 use super::fruit::{Fruit, FruitType};
-use super::sprite::{get_pineapple, get_sprite, FruitAssets};
+use super::sprite::{create_pineapple, create_sprite, FruitTextures};
 use crate::random::randint;
 
 const MAX_COMBO_FRUITS: i32 = 4;
@@ -31,7 +31,7 @@ fn random_fruit_type() -> FruitType {
 pub fn spawn_fruits(
     time: Res<Time>,
     mut timer: ResMut<FruitSpawnTimer>,
-    fruit_assets: Res<FruitAssets>,
+    fruit_assets: Res<FruitTextures>,
     mut commands: Commands,
 ) {
     timer.0.tick(time.delta());
@@ -45,12 +45,12 @@ pub fn spawn_fruits(
             FruitType::RIPE => {
                 let combo = randint(1, MAX_COMBO_FRUITS);
                 for i in 0..combo {
-                    let sprite = get_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
+                    let sprite = create_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
                     commands.spawn((sprite, Fruit::new()));
                 }
             }
             FruitType::PINEAPPLE => {
-                let sprite = get_pineapple(&fruit_assets, x_axis, 350.);
+                let sprite = create_pineapple(&fruit_assets, x_axis, 350.);
                 let mut fruit = Fruit::new();
                 fruit.fruit_type = FruitType::PINEAPPLE;
                 fruit.rotation_velocity = 0.0;

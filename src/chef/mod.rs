@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 mod sprite;
@@ -19,12 +21,12 @@ impl Plugin for ChefPlugin {
                 walk, 
                 collect_rotten_fruits, 
                 animate, 
-                update_level
+                update_level,
+                despawn_sound
             ))
             .add_event::<FruitHit>();
     }
 }
-
 
 #[derive(Component)]
 struct Player {
@@ -32,7 +34,9 @@ struct Player {
 }
 
 #[derive(Component)]
-struct Slash;
+struct Slash {
+    timer: Timer
+}
 
 #[derive(Event)]
 pub struct FruitHit {
@@ -125,7 +129,9 @@ fn hit(
                 ..default()
             };
 
-            commands.spawn((slash, Slash));
+            commands.spawn((slash, Slash {
+                timer: Timer::new(Duration::from_secs(3), TimerMode::Once)
+            }));
             
         }
     }
@@ -155,5 +161,16 @@ fn update_level(events: EventReader<LevelUpdate>, mut query: Query<&mut Player>)
         for mut player in &mut query {
             player.speed += SPEED_UPDATE;
         }        
+    }
+}
+
+
+fn despawn_sound(mut commands: Commands, time: Res<Time>, mut query: Query<(&mut Slash, Entity)>) {
+    for (mut slash, entity) in &mut query {
+        slash.timer.tick(time.delta());
+
+        if slash.timer.finished() {
+            commands.entity(entity).despawn();
+        }
     }
 }
