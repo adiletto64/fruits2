@@ -19,13 +19,19 @@ impl FruitSpawnTimer {
 }
 
 fn random_fruit_type() -> FruitType {
-    let n = randint(1, 20);
+    let mut n = randint(1, 20);
 
     if n == 5 {
-        FruitType::PINEAPPLE
-    } else {
-        FruitType::RIPE
-    }
+        return FruitType::PINEAPPLE
+    } 
+
+    n = randint(1, 3);
+
+    match n {
+        1 => FruitType::APPLE,
+        2 => FruitType::ORANGE,
+        _ => FruitType::STRAWBERRY,
+    }    
 }
 
 pub fn spawn_fruits(
@@ -42,19 +48,23 @@ pub fn spawn_fruits(
         let fruit_type = random_fruit_type();
 
         match fruit_type {
-            FruitType::RIPE => {
-                let combo = randint(1, MAX_COMBO_FRUITS);
-                for i in 0..combo {
-                    let sprite = create_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
-                    commands.spawn((sprite, Fruit::new()));
-                }
-            }
+
             FruitType::PINEAPPLE => {
                 let sprite = create_pineapple(&fruit_assets, x_axis, 350.);
                 let mut fruit = Fruit::new();
                 fruit.fruit_type = FruitType::PINEAPPLE;
                 fruit.rotation_speed = 0.0;
                 commands.spawn((sprite, fruit));
+            }
+
+            _ => {
+                let combo = randint(1, MAX_COMBO_FRUITS);
+                for i in 0..combo {
+                    let sprite = create_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
+                    let mut fruit = Fruit::new();
+                    fruit.fruit_type = fruit_type.clone();
+                    commands.spawn((sprite, fruit));
+                }
             }
         }
     }

@@ -42,14 +42,16 @@ impl Plugin for FruitPlugin {
 }
 
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum FruitType {
-    RIPE,
+    APPLE,
+    STRAWBERRY,
+    ORANGE,
     PINEAPPLE
 }
 
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Fruit {
     pub rotation_speed: f32,
     pub spread_speed: f32,
@@ -65,7 +67,7 @@ impl Fruit {
             spread_speed: 0.,
             fall_speed: FALL_SPEED,
             sliced: false,
-            fruit_type: FruitType::RIPE,
+            fruit_type: FruitType::APPLE,
         } 
     }
 }
@@ -114,7 +116,7 @@ fn hit(
     mut session: ResMut<Session>
 ) {
     for event in events.iter() {
-        let mut sound_created = false;
+        let mut hitted_fruits = Vec::<Fruit>::new();
 
         for (transform, entity, mut fruit) in &mut query {
 
@@ -124,30 +126,35 @@ fn hit(
             ).is_some();
 
             if hit_the_fruit {
-                let mut sliced_fruits = 0;
-
                 if !fruit.sliced {
                     start_slice_animation(&mut commands, &entity);
+                    hitted_fruits.push(fruit.clone());
 
                     session.score += 1;
-                    sliced_fruits += 1;
-
                     fruit.fall_speed += 100.;
+
                     fruit.spread_speed = (randint(-5, 5) as f32) * 100.;
-                    
                     fruit.sliced = true;
                 }
                 
                 if fruit.fruit_type == FruitType::PINEAPPLE {
                     session.boosts += 1;
                 }
+            }
+        };
+        sound_event_writer.send(SoundEvent::slash());
 
-                if !sound_created && sliced_fruits > 0 {
-                    sound_event_writer.send(SoundEvent {
-                        sound_type: SoundType::SPLAT
-                    });
-                    sound_created = true;
-                }
+        if hitted_fruits.len() > 0 {
+            sound_event_writer.send(SoundEvent::hit());
+            
+        } 
+        
+        for fruit in hitted_fruits {
+            match fruit.fruit_type {
+                FruitType::APPLE => sound_event_writer.send(SoundEvent::apple_slice()),
+                FruitType::ORANGE => sound_event_writer.send(SoundEvent::orange_slice()),
+                FruitType::STRAWBERRY => sound_event_writer.send(SoundEvent::strawberry_slice()),
+                FruitType::PINEAPPLE => sound_event_writer.send(SoundEvent::boost())
             }
         }
     }
@@ -225,9 +232,7 @@ fn process_bost(
                 fruit.fall_speed += 100.;
                 fruit.sliced = true;
 
-                sound_event_writer.send(SoundEvent {
-                    sound_type: SoundType::SPLAT
-                });
+                sound_event_writer.send(SoundEvent::boost());
             }
 
         }

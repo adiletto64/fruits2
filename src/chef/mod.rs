@@ -4,7 +4,6 @@ mod sprite;
 
 use self::sprite::AnimationSlice;
 use crate::level::LevelUpdate;
-use crate::sound::{SoundEvent, SoundType};
 
 const SPEED: f32 = 900.;
 const SPEED_UPDATE: f32 = 10.;
@@ -101,7 +100,6 @@ fn walk(
 fn hit(
     keys: Res<Input<KeyCode>>, 
     mut event: EventWriter<ChefHitEvent>,
-    mut sound_event: EventWriter<SoundEvent>,
     mut query: Query<(&Transform, &mut AnimationSlice), With<Player>>,
 ) { 
     if keys.just_pressed(KeyCode::Space) {
@@ -110,9 +108,6 @@ fn hit(
                 translation: transform.translation
             });
             animation.trigger_slice();
-            sound_event.send(SoundEvent { 
-                sound_type: SoundType::SLICE 
-            });
         }
     }
 }
