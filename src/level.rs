@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use crate::session::Session;
 use crate::state::AppState;
 
-const LEVEL_UPDATE_TIME: u64 = 4;
+const LEVEL_UPDATE_TIME: u64 = 6;
 
 
 pub struct LevelPlugin;

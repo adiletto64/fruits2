@@ -1,11 +1,10 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 
 mod sprite;
+
 use self::sprite::AnimationSlice;
 use crate::level::LevelUpdate;
-
+use crate::sound::{SoundEvent, SoundType};
 
 const SPEED: f32 = 900.;
 const SPEED_UPDATE: f32 = 10.;
@@ -21,10 +20,9 @@ impl Plugin for ChefPlugin {
                 walk, 
                 collect_rotten_fruits, 
                 animate, 
-                update_level,
-                despawn_sound
+                update_level
             ))
-            .add_event::<FruitHit>();
+            .add_event::<ChefHitEvent>();
     }
 }
 
@@ -33,13 +31,8 @@ struct Player {
     speed: f32
 }
 
-#[derive(Component)]
-struct Slash {
-    timer: Timer
-}
-
 #[derive(Event)]
-pub struct FruitHit {
+pub struct ChefHitEvent {
     pub translation: Vec3
 }
 
@@ -61,7 +54,6 @@ fn setup(
         )
     );
 }
-
 
 
 fn animate(
@@ -107,32 +99,20 @@ fn walk(
 
 
 fn hit(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>, 
-    mut event: EventWriter<FruitHit>,
+    mut event: EventWriter<ChefHitEvent>,
+    mut sound_event: EventWriter<SoundEvent>,
     mut query: Query<(&Transform, &mut AnimationSlice), With<Player>>,
 ) { 
     if keys.just_pressed(KeyCode::Space) {
         for (transform, mut animation) in &mut query {
-            event.send(FruitHit {
+            event.send(ChefHitEvent {
                 translation: transform.translation
             });
             animation.trigger_slice();
-
-            let slash = AudioBundle {
-                source: asset_server.load("audio/slash.ogg"), 
-                settings: PlaybackSettings {
-                    speed: 1.5,
-                    ..default()
-                },
-                ..default()
-            };
-
-            commands.spawn((slash, Slash {
-                timer: Timer::new(Duration::from_secs(3), TimerMode::Once)
-            }));
-            
+            sound_event.send(SoundEvent { 
+                sound_type: SoundType::SLICE 
+            });
         }
     }
 }
@@ -161,16 +141,5 @@ fn update_level(events: EventReader<LevelUpdate>, mut query: Query<&mut Player>)
         for mut player in &mut query {
             player.speed += SPEED_UPDATE;
         }        
-    }
-}
-
-
-fn despawn_sound(mut commands: Commands, time: Res<Time>, mut query: Query<(&mut Slash, Entity)>) {
-    for (mut slash, entity) in &mut query {
-        slash.timer.tick(time.delta());
-
-        if slash.timer.finished() {
-            commands.entity(entity).despawn();
-        }
     }
 }

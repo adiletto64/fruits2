@@ -11,6 +11,7 @@ mod fruits;
 mod level;
 mod random;
 mod info;
+mod sound;
 
 mod menu;
 mod session;
@@ -26,7 +27,13 @@ fn main() {
     App::new()
         .add_plugins(settings())
         .add_state::<state::AppState>()
-        .add_plugins((menu::MenuPlugin, session::SessionPlugin, pause::PausePlugin, finish::FinishPlugin))
+        .add_plugins((
+            menu   ::MenuPlugin, 
+            sound  ::SoundPlugin, 
+            session::SessionPlugin, 
+            pause  ::PausePlugin, 
+            finish ::FinishPlugin
+        ))
         .add_systems(Startup, setup)
         .run();
 }
@@ -64,7 +71,7 @@ fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
         source: assert_server.load("audio/bg.ogg"),
         settings: PlaybackSettings { 
             mode: bevy::audio::PlaybackMode::Loop, 
-            speed: 1.5, 
+            speed: 2.0, 
             paused: false,
             volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.3))
         },

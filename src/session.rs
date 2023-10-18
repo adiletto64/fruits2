@@ -33,10 +33,15 @@ pub struct Session {
 
 impl Session {
     pub fn default() -> Self {
-        Self { level: 1, lives_left: 3, score: 0, boosts: 0 }
+        Self { level: 1, lives_left: 5, score: 0, boosts: 0 }
     }
     pub fn text(&self) -> String {
-        format!("Current level: {}\nLive left: {}\nscore: {}", self.level, self.lives_left, self.score)
+        format!(
+            "boosts: {}
+            Live left: {}
+            score: {}", 
+            self.boosts, self.lives_left, self.score
+        )
     }
 }
 

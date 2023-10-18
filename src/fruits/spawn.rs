@@ -53,7 +53,7 @@ pub fn spawn_fruits(
                 let sprite = create_pineapple(&fruit_assets, x_axis, 350.);
                 let mut fruit = Fruit::new();
                 fruit.fruit_type = FruitType::PINEAPPLE;
-                fruit.rotation_velocity = 0.0;
+                fruit.rotation_speed = 0.0;
                 commands.spawn((sprite, fruit));
             }
         }
