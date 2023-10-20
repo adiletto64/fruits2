@@ -5,7 +5,7 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
     let texture_atlas =TextureAtlas::from_grid(
         asset_server.load("images/chef2.png"), 
         Vec2::new(40.0, 40.0),
-        9, 
+        17, 
         1, 
         None,
         None
@@ -16,7 +16,7 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
     return SpriteSheetBundle {
         texture_atlas: texture_atlas_handle,
         sprite: TextureAtlasSprite::new(0),
-        transform: Transform::from_xyz(0.0, -250.0, 1.0).with_scale(Vec3::splat(5.0)),
+        transform: Transform::from_xyz(0.0, -220.0, 1.0).with_scale(Vec3::splat(5.0)),
         ..default()
     }
 }
@@ -40,7 +40,7 @@ pub struct AnimationSlice {
 impl AnimationSlice {
     pub fn normal(&mut self) {
         self.state = ChefState::Waiting;
-        self.index = 0;
+        self.index = 9;
     }
 
     pub fn trigger_slice(&mut self) {
@@ -56,7 +56,11 @@ impl AnimationSlice {
     pub fn update(&mut self) {
         match self.state {
             ChefState::Waiting => {
-                self.index = 0
+                if self.index == 16 {
+                    self.index = 9;
+                } else {
+                    self.index += 1;
+                }
             },
             ChefState::Slice => {
                 if self.index == 0 {
@@ -65,8 +69,7 @@ impl AnimationSlice {
                 if self.index < 7 {
                     self.index += 1;
                 } else {
-                    self.index = 0;
-                    self.state = ChefState::Waiting;
+                    self.normal();
                 } 
             },
             ChefState::Bag => {
@@ -78,7 +81,7 @@ impl AnimationSlice {
     pub fn new() -> Self {
         return Self {
             state: ChefState::Waiting,
-            index: 0,
+            index: 9,
             timer: Timer::from_seconds(0.07, TimerMode::Repeating),
         }
     }

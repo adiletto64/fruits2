@@ -1,8 +1,8 @@
 use std::time::Duration;
 use bevy::prelude::*;
 
-use crate::session::Session;
-use crate::state::AppState;
+use crate::states::session::Session;
+use crate::global::AppState;
 
 const LEVEL_UPDATE_TIME: u64 = 6;
 

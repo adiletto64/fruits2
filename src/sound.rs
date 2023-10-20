@@ -1,5 +1,6 @@
-use bevy::prelude::*;
+#![allow(non_camel_case_types)]
 
+use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
 
@@ -33,7 +34,7 @@ impl SoundType {
             Self::APPLE_SLICE => "audio/apple-slice.wav",
             Self::ORANGE_SLICE => "audio/orange-slice.wav",
             Self::STRAWBERRY_SLICE => "audio/strawberry-slice.wav",
-            Self::BOOST => "audio/boost.wav",
+            Self::BOOST => "audio/apple-slice.wav",
             Self::SLASH => "audio/slash.wav",
             Self::HIT => "audio/hit.wav"
         }
@@ -68,10 +69,13 @@ fn spawn_sound(
     for event in events.iter() {
         let handle = asset_server.load(event.sound_type.file());
 
-        if event.sound_type == SoundType::HIT {
-            audio.play(handle).with_volume(0.6);
-        } else {
-            audio.play(handle);
+        let mut volume = 0.0;
+
+        match event.sound_type {
+            SoundType::SLASH => volume = 0.6,
+            SoundType::HIT   => volume = 0.7,
+            _                => volume = 1.0
         }
+        audio.play(handle).with_volume(volume);
     }
 }

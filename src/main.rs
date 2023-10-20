@@ -9,30 +9,27 @@ use bevy::{prelude::*, asset::ChangeWatcher, audio::VolumeLevel};
 mod chef;
 mod fruits;
 mod level;
-mod random;
 mod info;
 mod sound;
 
-mod menu;
-mod session;
-mod pause;
-mod finish;
-
-mod state;
-mod ui;
+mod states;
+mod utils;
+mod global;
 
 
 
 fn main() {
+    std::env::set_var("RUST_LOG", "symphonia_core=error");
+
     App::new()
         .add_plugins(settings())
-        .add_state::<state::AppState>()
+        .add_state::<global::AppState>()
         .add_plugins((
-            menu   ::MenuPlugin, 
+            states::menu   ::MenuPlugin, 
+            states::session::SessionPlugin, 
+            states::pause  ::PausePlugin, 
+            states::finish ::FinishPlugin,
             sound  ::SoundPlugin, 
-            session::SessionPlugin, 
-            pause  ::PausePlugin, 
-            finish ::FinishPlugin
         ))
         .add_systems(Startup, setup)
         .run();

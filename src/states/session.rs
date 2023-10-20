@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
-use crate::fruits::fruit::FruitPlugin;
+use crate::fruits::FruitPlugin;
 use crate::chef::ChefPlugin;
 use crate::level::LevelPlugin;
 use crate::info::InfoPlugin;
 
-use crate::state::AppState;
+use crate::global::AppState;
 
 
 pub struct SessionPlugin;
@@ -38,9 +38,8 @@ impl Session {
     pub fn text(&self) -> String {
         format!(
             "boosts: {}
-            Live left: {}
             score: {}", 
-            self.boosts, self.lives_left, self.score
+            self.boosts, self.score
         )
     }
 }

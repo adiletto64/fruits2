@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
-use crate::state::AppState;
-use crate::ui::text;
+use crate::global::AppState;
+use crate::utils::ui::text;
 
-use crate::session::Session;
+use super::session::Session;
 
 
 pub struct FinishPlugin;

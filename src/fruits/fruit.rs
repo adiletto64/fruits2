@@ -2,44 +2,20 @@ use std::time::Duration;
 
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
-use crate::random::randint;
+use crate::utils::random::randint;
 use crate::chef::ChefHitEvent;
 use crate::level::LevelUpdate;
-use crate::session::Session;
-use crate::state::AppState;
-use crate::sound::{SoundEvent, SoundType};
+use crate::sound::SoundEvent;
+use crate::states::session::Session;
 
 use super::sprite::FruitTextures;
-use super::spawn::{spawn_fruits, FruitSpawnTimer};
+use super::spawn::FruitSpawnTimer;
 
 
 const FALL_SPEED: f32 = 400.;
 
 const SLICE_ANIMATION_SPEED: u64 = 80;
-const SPAWN_INTENSITY_UPDATE_PERCENT: u32 = 90;
-
-
-pub struct FruitPlugin;
-impl Plugin for FruitPlugin {
-    fn build(&self, app: &mut App) {
-        app
-            .add_systems(OnEnter::<AppState>(AppState::InGame), setup)
-            .add_systems(
-                Update, 
-                (
-                    spawn_fruits, 
-                    fall,
-                    despawn_fallen_fruits,
-                    hit, 
-                    animate_slice, 
-                    increase_spawn_intensity,
-                    spawn_boost,
-                    process_bost
-                ).run_if(in_state(AppState::InGame))
-            )
-        ;
-    }
-}
+const SPAWN_INTENSITY_UPDATE_PERCENT: u32 = 95;
 
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -74,13 +50,15 @@ impl Fruit {
 
 
 #[derive(Component)]
-struct HitAnimation {timer: Timer}
+pub struct HitAnimation {timer: Timer}
 
 #[derive(Component)]
-struct Boost {height: f32}
+pub struct Boost {
+    timer: Timer
+}
 
 
-fn setup(
+pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
@@ -96,19 +74,22 @@ fn setup(
 }
 
 
-fn increase_spawn_intensity(
+pub fn increase_spawn_intensity(
     events: EventReader<LevelUpdate>,
     mut spawn_timer: ResMut<FruitSpawnTimer>
 ) {
     if !events.is_empty() {
         let duration = spawn_timer.0.duration();
-        spawn_timer.0.set_duration(duration / 100 * SPAWN_INTENSITY_UPDATE_PERCENT);        
+
+        if duration.as_millis() > 450 {
+            spawn_timer.0.set_duration(duration / 100 * SPAWN_INTENSITY_UPDATE_PERCENT);  
+        }
     }
 }
 
 
 
-fn hit(
+pub fn hit(
     mut events: EventReader<ChefHitEvent>, 
     mut sound_event_writer: EventWriter<SoundEvent>,
     mut query: Query<(&Transform, Entity, &mut Fruit)>,
@@ -161,7 +142,7 @@ fn hit(
 }
 
 
-fn fall(
+pub fn fall(
     time: Res<Time>, 
     mut query: Query<(&mut Transform, &mut Fruit)>, 
 ) {
@@ -178,7 +159,7 @@ fn fall(
 }
 
 
-fn despawn_fallen_fruits(
+pub fn despawn_fallen_fruits(
     query: Query<(&Transform, &Fruit, Entity)>, 
     mut commands: Commands,
     mut session: ResMut<Session>
@@ -194,57 +175,54 @@ fn despawn_fallen_fruits(
 }
 
 
-fn spawn_boost(
+pub fn spawn_boost(
     mut commands: Commands, 
     keys: Res<Input<KeyCode>>,
     mut session: ResMut<Session>
 ) {
     if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
         commands.spawn(Boost {
-            height: -450.0
+            timer: Timer::from_seconds(0.2, TimerMode::Repeating)
         });
         session.boosts -= 1;
     }
 }
 
 
-fn process_bost(
+pub fn process_bost(
     mut commands: Commands,
     mut boosts: Query<(&mut Boost, Entity)>,
     time: Res<Time>, 
-    mut query: Query<(&Transform, &mut Fruit, Entity)>,
+    mut query: Query<(&mut Fruit, &Transform, Entity)>,
     mut session: ResMut<Session>,
     mut sound_event_writer: EventWriter<SoundEvent>,
 ) {
     for (mut boost, boost_entity) in &mut boosts {
-        boost.height += 1000. * time.delta_seconds();
+        boost.timer.tick(time.delta());
 
-        for (transform, mut fruit, entity) in &mut query {
-            let collides_with_fruit = collide(
-                transform.translation, Vec2::new(10., 10.), 
-                Vec3 {y: boost.height, x: 0., z: 0.}, Vec2::new(1000., 10.), 
-            ).is_some();
+        if boost.timer.finished() {
+            let result = query.iter_mut().nth(0);
 
-            if collides_with_fruit {
-                start_slice_animation(&mut commands, &entity);
+            match result {
+                Some((mut fruit, _, entity)) => {
+                    start_slice_animation(&mut commands, &entity);
 
-                session.score += 1;
-                fruit.fall_speed += 100.;
-                fruit.sliced = true;
+                    session.score += 1;
+                    fruit.fall_speed += 100.;
+                    fruit.sliced = true;
 
-                sound_event_writer.send(SoundEvent::boost());
-            }
-
-        }
-
-        if boost.height > 800. {
-            commands.entity(boost_entity).despawn();
+                    sound_event_writer.send(SoundEvent::boost());
+                },
+                None => {
+                    commands.entity(boost_entity).despawn();
+                }
+            }            
         }
     }
 }
 
 
-fn start_slice_animation(commands: &mut Commands, entity: &Entity) {
+pub fn start_slice_animation(commands: &mut Commands, entity: &Entity) {
     commands.entity(*entity).insert(
         HitAnimation { 
             timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating)
@@ -253,7 +231,7 @@ fn start_slice_animation(commands: &mut Commands, entity: &Entity) {
 }
 
 
-fn animate_slice(
+pub fn animate_slice(
     time: Res<Time>,
     mut query: Query<(&mut TextureAtlasSprite, &mut HitAnimation, Entity), With<Fruit>>,
     mut commands: Commands

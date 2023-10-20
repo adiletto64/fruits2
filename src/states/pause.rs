@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-use crate::state::AppState;
-use crate::ui::text;
+use crate::global::AppState;
+use crate::utils::ui::text;
 
 
 pub struct PausePlugin;

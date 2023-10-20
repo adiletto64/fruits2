@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use super::fruit::{Fruit, FruitType};
 use super::sprite::{create_pineapple, create_sprite, FruitTextures};
-use crate::random::randint;
+use crate::utils::random::randint;
 
 const MAX_COMBO_FRUITS: i32 = 4;
 const FRUITS_SPAWN_SPAN: (i32, i32) = (-350, 350);
@@ -14,24 +14,24 @@ pub struct FruitSpawnTimer(pub Timer);
 
 impl FruitSpawnTimer {
     pub fn new() -> Self {
-        return Self(Timer::new(Duration::from_secs(1), TimerMode::Repeating));
+        return Self(Timer::new(Duration::from_millis(800), TimerMode::Repeating));
     }
 }
 
-fn random_fruit_type() -> FruitType {
-    let mut n = randint(1, 20);
 
+enum FoodType {
+    FRUIT,
+    PINEAPPLE
+}
+
+
+fn random_fruit_type() -> FoodType {
+    let n = randint(1, 20);
     if n == 5 {
-        return FruitType::PINEAPPLE
+        return FoodType::PINEAPPLE
+    } else {
+        return FoodType::FRUIT
     } 
-
-    n = randint(1, 3);
-
-    match n {
-        1 => FruitType::APPLE,
-        2 => FruitType::ORANGE,
-        _ => FruitType::STRAWBERRY,
-    }    
 }
 
 pub fn spawn_fruits(
@@ -48,8 +48,7 @@ pub fn spawn_fruits(
         let fruit_type = random_fruit_type();
 
         match fruit_type {
-
-            FruitType::PINEAPPLE => {
+            FoodType::PINEAPPLE => {
                 let sprite = create_pineapple(&fruit_assets, x_axis, 350.);
                 let mut fruit = Fruit::new();
                 fruit.fruit_type = FruitType::PINEAPPLE;
@@ -57,10 +56,17 @@ pub fn spawn_fruits(
                 commands.spawn((sprite, fruit));
             }
 
-            _ => {
+            FoodType::FRUIT => {
                 let combo = randint(1, MAX_COMBO_FRUITS);
                 for i in 0..combo {
-                    let sprite = create_sprite(&fruit_assets, x_axis, i as f32 * 30. + 330.);
+                    
+                    let (sprite, fruit_type) = create_sprite(
+                        &fruit_assets, 
+                        x_axis, 
+                        i as f32 * 30. + 330.,
+                        5. + (MAX_COMBO_FRUITS - i) as f32
+                    );
+
                     let mut fruit = Fruit::new();
                     fruit.fruit_type = fruit_type.clone();
                     commands.spawn((sprite, fruit));

@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use rand::Rng;
+use crate::utils::random::randint;
+
+use super::fruit::FruitType;
 
 
 const FRUIT_IMAGES: [&str; 3] = [
@@ -17,10 +19,14 @@ pub struct FruitTextures {
 }
 
 impl FruitTextures {
-    fn get_random_image(&self) -> Handle<TextureAtlas> {
-        let mut rng = rand::thread_rng();
-        let random_index: usize = rng.gen_range(0..self.textures.len());
-        return self.textures[random_index].clone();
+    fn get_random_fruit(&self) -> (Handle<TextureAtlas>, FruitType) {
+        let random_index = randint(1, 4);
+
+        match random_index {
+            1 => (self.textures[0].clone(), FruitType::APPLE),
+            2 => (self.textures[1].clone(), FruitType::STRAWBERRY),
+            _ => (self.textures[2].clone(), FruitType::ORANGE)
+        }
     }
 
     pub fn new(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> Self {
@@ -45,15 +51,17 @@ impl FruitTextures {
 }
 
 
-pub fn create_sprite(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> SpriteSheetBundle {
-    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.5));
-
-    return SpriteSheetBundle {
-        texture_atlas: fruit_assets.get_random_image(),
+pub fn create_sprite(fruit_assets: &Res<FruitTextures>, x: f32, y: f32, z: f32) -> (SpriteSheetBundle, FruitType) {
+    let transform = Transform::from_xyz(x, y, z).with_scale(Vec3::splat(3.5));
+    let (texture, fruit_type) = fruit_assets.get_random_fruit();
+    let sprite = SpriteSheetBundle {
+        texture_atlas: texture,
         sprite: TextureAtlasSprite::new(0),
         transform: transform,
         ..default()
     };
+
+    (sprite, fruit_type)
 }
 
 

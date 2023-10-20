@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
-use crate::session::Session;
+use crate::states::session::Session;
+use crate::global::AppState;
 
 
 pub struct InfoPlugin;
@@ -10,13 +11,17 @@ impl Plugin for InfoPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
-            .add_systems(Update, update);
+            .add_systems(OnEnter::<AppState>(AppState::InGame), respawn_hearts)
+            .add_systems(Update, (update, update_live));
     }
 }
 
 
 #[derive(Component)]
 struct TextInfo;
+
+#[derive(Component)]
+struct Live(u32);
 
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -38,6 +43,35 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_xyz(400., 250., 10.),
         ..default()
     }, TextInfo));
+}
+
+
+fn respawn_hearts(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let session = Session::default();
+
+    for i in 0..session.lives_left {
+        commands.spawn((
+            SpriteBundle {
+                texture: asset_server.load("images/heart.png"),
+                transform: Transform::from_xyz(530. - 40. * i as f32, 180., 10.).with_scale(Vec3::splat(3.)),
+                ..default()
+            },
+            TextInfo,
+            Live(i+1)
+        ));
+    }
+}
+
+
+fn update_live(mut commands: Commands, query: Query<(Entity, &Live)>, info: Res<Session>) {
+    if info.lives_left != query.iter().len() as u32 {
+        for (entity, live) in &query {
+            if live.0 - 1 == info.lives_left {
+                commands.entity(entity).despawn();
+                break;
+            } 
+        }
+    }
 }
 
 
