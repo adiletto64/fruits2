@@ -48,12 +48,9 @@ pub struct SoundEvent {
 }
 
 impl SoundEvent {
-    pub fn apple_slice() -> Self { Self { sound_type: SoundType::APPLE_SLICE } }
-    pub fn orange_slice() -> Self { Self { sound_type: SoundType::ORANGE_SLICE } }
-    pub fn strawberry_slice() -> Self { Self { sound_type: SoundType::STRAWBERRY_SLICE } }
-    pub fn boost() -> Self { Self { sound_type: SoundType::BOOST } }
-    pub fn slash() -> Self { Self { sound_type: SoundType::SLASH } }
-    pub fn hit() -> Self { Self { sound_type: SoundType::HIT } }
+    pub fn sound(sound_type: SoundType) -> SoundEvent {
+        return Self { sound_type: sound_type }
+    } 
 }
 
 
@@ -69,7 +66,7 @@ fn spawn_sound(
     for event in events.iter() {
         let handle = asset_server.load(event.sound_type.file());
 
-        let mut volume = 0.0;
+        let volume;
 
         match event.sound_type {
             SoundType::SLASH => volume = 0.6,

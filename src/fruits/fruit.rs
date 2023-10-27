@@ -4,8 +4,7 @@ use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 use crate::utils::random::randint;
 use crate::chef::ChefHitEvent;
-use crate::level::LevelUpdate;
-use crate::sound::SoundEvent;
+use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
 
 use super::sprite::FruitTextures;
@@ -13,9 +12,7 @@ use super::spawn::FruitSpawnTimer;
 
 
 const FALL_SPEED: f32 = 400.;
-
 const SLICE_ANIMATION_SPEED: u64 = 80;
-const SPAWN_INTENSITY_UPDATE_PERCENT: u32 = 95;
 
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -36,6 +33,7 @@ pub struct Fruit {
     sliced: bool,
 }
 
+
 impl Fruit {
     pub fn new() -> Self { 
         Self { 
@@ -52,10 +50,9 @@ impl Fruit {
 #[derive(Component)]
 pub struct HitAnimation {timer: Timer}
 
+
 #[derive(Component)]
-pub struct Boost {
-    timer: Timer
-}
+pub struct Boost {timer: Timer}
 
 
 pub fn setup(
@@ -74,24 +71,9 @@ pub fn setup(
 }
 
 
-pub fn increase_spawn_intensity(
-    events: EventReader<LevelUpdate>,
-    mut spawn_timer: ResMut<FruitSpawnTimer>
-) {
-    if !events.is_empty() {
-        let duration = spawn_timer.0.duration();
-
-        if duration.as_millis() > 450 {
-            spawn_timer.0.set_duration(duration / 100 * SPAWN_INTENSITY_UPDATE_PERCENT);  
-        }
-    }
-}
-
-
-
 pub fn hit(
     mut events: EventReader<ChefHitEvent>, 
-    mut sound_event_writer: EventWriter<SoundEvent>,
+    mut sound: EventWriter<SoundEvent>,
     mut query: Query<(&Transform, Entity, &mut Fruit)>,
     mut commands: Commands,
     mut session: ResMut<Session>
@@ -123,19 +105,19 @@ pub fn hit(
                 }
             }
         };
-        sound_event_writer.send(SoundEvent::slash());
+        sound.send(SoundEvent::sound(SoundType::SLASH));
 
         if hitted_fruits.len() > 0 {
-            sound_event_writer.send(SoundEvent::hit());
+            sound.send(SoundEvent::sound(SoundType::HIT));
             
         } 
         
         for fruit in hitted_fruits {
             match fruit.fruit_type {
-                FruitType::APPLE => sound_event_writer.send(SoundEvent::apple_slice()),
-                FruitType::ORANGE => sound_event_writer.send(SoundEvent::orange_slice()),
-                FruitType::STRAWBERRY => sound_event_writer.send(SoundEvent::strawberry_slice()),
-                FruitType::PINEAPPLE => sound_event_writer.send(SoundEvent::boost())
+                FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
+                FruitType::ORANGE =>     sound.send(SoundEvent::sound(SoundType::ORANGE_SLICE)),
+                FruitType::STRAWBERRY => sound.send(SoundEvent::sound(SoundType::STRAWBERRY_SLICE)),
+                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::APPLE_SLICE))
             }
         }
     }
@@ -201,22 +183,26 @@ pub fn process_bost(
         boost.timer.tick(time.delta());
 
         if boost.timer.finished() {
-            let result = query.iter_mut().nth(0);
 
-            match result {
-                Some((mut fruit, _, entity)) => {
+
+            let mut found = false;
+
+            for (mut fruit, transform, entity) in &mut query {
+                if transform.translation.y < 300. {
                     start_slice_animation(&mut commands, &entity);
-
+                    
                     session.score += 1;
                     fruit.fall_speed += 100.;
                     fruit.sliced = true;
 
-                    sound_event_writer.send(SoundEvent::boost());
-                },
-                None => {
-                    commands.entity(boost_entity).despawn();
+                    sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
+                    found = true;
                 }
-            }            
+            }
+
+            if !found {
+                commands.entity(boost_entity).despawn();
+            }
         }
     }
 }
