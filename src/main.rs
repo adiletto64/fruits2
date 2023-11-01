@@ -6,8 +6,8 @@
 #![warn(clippy::nursery)]
 
 // pedantic
-// #![warn(clippy::pedantic, clippy::style)]
-
+#![warn(clippy::pedantic, clippy::style)]
+#![allow(clippy::needless_pass_by_value)]
 
 use std::time::Duration;
 
