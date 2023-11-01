@@ -53,7 +53,6 @@ pub struct HitAnimation {timer: Timer}
 
 #[derive(Component)]
 pub struct Boost {
-    timer: Timer,
     count: usize
 }
 
@@ -169,10 +168,7 @@ pub fn spawn_boost(
     if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
         let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count();
 
-        commands.spawn(Boost {
-            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
-            count: count
-        });
+        commands.spawn(Boost {count: count});
         session.boosts -= 1;
     }
 }
@@ -181,16 +177,13 @@ pub fn spawn_boost(
 pub fn process_boost(
     mut commands: Commands,
     mut boosts: Query<(&mut Boost, Entity)>,
-    time: Res<Time>, 
     mut query: Query<(&mut Fruit, Entity)>,
     mut session: ResMut<Session>,
     mut sound_event_writer: EventWriter<SoundEvent>,
 ) {
     for (mut boost, boost_entity) in &mut boosts {
-        boost.timer.tick(time.delta());
-        if boost.timer.finished() && boost.count > 0 {
-            for (mut fruit, entity) in &mut query {
-
+        for (mut fruit, entity) in &mut query {
+            if boost.count > 0 {
                 start_slice_animation(&mut commands, &entity);
 
                 session.score += 1;
