@@ -26,7 +26,7 @@ impl Plugin for FruitPlugin {
                     fruit::hit, 
                     fruit::animate_slice, 
                     fruit::spawn_boost,
-                    fruit::process_bost
+                    fruit::process_boost
                 ).run_if(in_state(AppState::InGame))
             )
         ;

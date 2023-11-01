@@ -24,7 +24,7 @@ pub enum FruitType {
 }
 
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub struct Fruit {
     pub rotation_speed: f32,
     pub spread_speed: f32,
@@ -52,7 +52,10 @@ pub struct HitAnimation {timer: Timer}
 
 
 #[derive(Component)]
-pub struct Boost {timer: Timer}
+pub struct Boost {
+    timer: Timer,
+    count: usize
+}
 
 
 pub fn setup(
@@ -159,50 +162,48 @@ pub fn despawn_fallen_fruits(
 
 pub fn spawn_boost(
     mut commands: Commands, 
+    mut session: ResMut<Session>,
     keys: Res<Input<KeyCode>>,
-    mut session: ResMut<Session>
+    query: Query<(&Transform, &Fruit)>
 ) {
     if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
+        let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count();
+
         commands.spawn(Boost {
-            timer: Timer::from_seconds(0.2, TimerMode::Repeating)
+            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
+            count: count
         });
         session.boosts -= 1;
     }
 }
 
 
-pub fn process_bost(
+pub fn process_boost(
     mut commands: Commands,
     mut boosts: Query<(&mut Boost, Entity)>,
     time: Res<Time>, 
-    mut query: Query<(&mut Fruit, &Transform, Entity)>,
+    mut query: Query<(&mut Fruit, Entity)>,
     mut session: ResMut<Session>,
     mut sound_event_writer: EventWriter<SoundEvent>,
 ) {
     for (mut boost, boost_entity) in &mut boosts {
         boost.timer.tick(time.delta());
+        if boost.timer.finished() && boost.count > 0 {
+            for (mut fruit, entity) in &mut query {
 
-        if boost.timer.finished() {
+                start_slice_animation(&mut commands, &entity);
 
+                session.score += 1;
+                fruit.fall_speed += 100.;
+                fruit.sliced = true;
 
-            let mut found = false;
-
-            for (mut fruit, transform, entity) in &mut query {
-                if transform.translation.y < 300. {
-                    start_slice_animation(&mut commands, &entity);
-                    
-                    session.score += 1;
-                    fruit.fall_speed += 100.;
-                    fruit.sliced = true;
-
-                    sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
-                    found = true;
-                }
+                sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
+                boost.count -= 1;
             }
+        }
 
-            if !found {
-                commands.entity(boost_entity).despawn();
-            }
+        if boost.count == 0 {
+            commands.entity(boost_entity).despawn();
         }
     }
 }

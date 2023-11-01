@@ -2,6 +2,13 @@
 // https://bevy-cheatbook.github.io/platforms/windows.html#disabling-the-windows-console
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+// complexity
+#![warn(clippy::nursery)]
+
+// pedantic
+// #![warn(clippy::pedantic, clippy::style)]
+
+
 use std::time::Duration;
 
 use bevy::{prelude::*, asset::ChangeWatcher, audio::VolumeLevel};
