@@ -4,8 +4,8 @@ use bevy::prelude::{Res, AssetServer, TextStyle, Text2dBundle, Text, TextAlignme
 pub fn text(asset_server: &Res<AssetServer>, text: &str, x: f32, y: f32, font_size: f32) -> Text2dBundle {
     let text_style = TextStyle {
         font: asset_server.load("fonts/mn-regular.otf"),
-        font_size: font_size,
-        color: Color::WHITE
+        color: Color::WHITE,
+        font_size,
     };
 
     Text2dBundle {

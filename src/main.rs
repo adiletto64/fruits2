@@ -3,11 +3,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 // complexity
-#![warn(clippy::nursery)]
+// #![warn(clippy::nursery)]
 
 // pedantic
-#![warn(clippy::pedantic, clippy::style)]
-#![allow(clippy::needless_pass_by_value)]
+// #![warn(clippy::pedantic, clippy::style)]
+
+#![allow(clippy::upper_case_acronyms, clippy::suboptimal_flops, clippy::needless_pass_by_value, clippy::module_name_repetitions)]
+
 
 use std::time::Duration;
 
@@ -78,7 +80,6 @@ fn setup(mut commands: Commands, assert_server: Res<AssetServer>) {
             speed: 2.0, 
             paused: false,
             volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.3))
-        },
-        ..default()
+        }
     });
 }

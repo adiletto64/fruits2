@@ -109,7 +109,7 @@ pub fn hit(
         };
         sound.send(SoundEvent::sound(SoundType::SLASH));
 
-        if hitted_fruits.len() > 0 {
+        if !hitted_fruits.is_empty() {
             sound.send(SoundEvent::sound(SoundType::HIT));
             
         } 
@@ -168,7 +168,7 @@ pub fn spawn_boost(
     if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
         let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count();
 
-        commands.spawn(Boost {count: count});
+        commands.spawn(Boost {count});
         session.boosts -= 1;
     }
 }

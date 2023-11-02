@@ -34,7 +34,7 @@ pub struct FruitSpawnTimer(pub Timer);
 
 impl FruitSpawnTimer {
     pub fn new() -> Self {
-        return Self(Timer::new(INITIAL_SPAWN_TIMER, TimerMode::Repeating));
+        Self(Timer::new(INITIAL_SPAWN_TIMER, TimerMode::Repeating))
     }
 }
 

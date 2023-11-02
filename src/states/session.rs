@@ -32,7 +32,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub fn default() -> Self {
+    pub const fn default() -> Self {
         Self { level: 1, lives_left: 5, score: 0, boosts: 0 }
     }
     pub fn text(&self) -> String {

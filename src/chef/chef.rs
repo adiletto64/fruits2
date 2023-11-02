@@ -61,17 +61,13 @@ pub fn walk(
         mut sprite, 
         player
     ) in &mut query {
-        if keys.pressed(KeyCode::Left) {
-            if transform.translation.x > -500. {
-                sprite.flip_x = true;
-                transform.translation.x -= player.speed * time.delta_seconds();                
-            }
+        if keys.pressed(KeyCode::Left) && transform.translation.x > -500. {
+            sprite.flip_x = true;
+            transform.translation.x -= player.speed * time.delta_seconds();                
         }
-        else if keys.pressed(KeyCode::Right){
-            if transform.translation.x < 500. {
-                sprite.flip_x = false;
-                transform.translation.x += player.speed * time.delta_seconds();                
-            }
+        else if keys.pressed(KeyCode::Right) && transform.translation.x < 500. {
+            sprite.flip_x = false;
+            transform.translation.x += player.speed * time.delta_seconds();                
         }
     }
 }
@@ -112,7 +108,7 @@ pub fn collect_rotten_fruits(
 
 
 pub fn update_level(events: EventReader<LevelUpdate>, mut query: Query<&mut Player>) {
-    if events.len() > 0 {
+    if !events.is_empty() {
         for mut player in &mut query {
             player.speed += SPEED_UPDATE;
         }        

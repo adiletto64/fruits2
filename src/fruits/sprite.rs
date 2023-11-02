@@ -43,10 +43,7 @@ impl FruitTextures {
         let pineapple = get_texture(asset_server.load("images/fruits/pineapple.png"));
         let pineapple_texture = texture_atlases.add(pineapple);
     
-        return FruitTextures {
-            textures: textures,
-            pineapple_texture: pineapple_texture
-        };
+        FruitTextures { textures, pineapple_texture }
     }
 }
 
@@ -57,7 +54,7 @@ pub fn create_sprite(fruit_assets: &Res<FruitTextures>, x: f32, y: f32, z: f32) 
     let sprite = SpriteSheetBundle {
         texture_atlas: texture,
         sprite: TextureAtlasSprite::new(0),
-        transform: transform,
+        transform,
         ..default()
     };
 
@@ -68,12 +65,12 @@ pub fn create_sprite(fruit_assets: &Res<FruitTextures>, x: f32, y: f32, z: f32) 
 pub fn create_pineapple(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> SpriteSheetBundle {
     let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(5.));
 
-    return SpriteSheetBundle {
+    SpriteSheetBundle {
         texture_atlas: fruit_assets.pineapple_texture.clone(),
         sprite: TextureAtlasSprite::new(0),
-        transform: transform,
+        transform,
         ..default()
-    };
+    }
 }
 
 

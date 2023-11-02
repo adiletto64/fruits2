@@ -13,7 +13,7 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
 
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
-    return SpriteSheetBundle {
+    SpriteSheetBundle {
         texture_atlas: texture_atlas_handle,
         sprite: TextureAtlasSprite::new(0),
         transform: Transform::from_xyz(0.0, -220.0, 1.0).with_scale(Vec3::splat(5.0)),
@@ -22,7 +22,7 @@ pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<
 }
 
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum ChefState {
     Slice,
     Waiting,
@@ -79,7 +79,7 @@ impl AnimationSlice {
     }
 
     pub fn new() -> Self {
-        return Self {
+        Self {
             state: ChefState::Waiting,
             index: 9,
             timer: Timer::from_seconds(0.07, TimerMode::Repeating),
