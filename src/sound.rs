@@ -18,30 +18,31 @@ impl Plugin for SoundPlugin {
 }
 
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum SoundType {
     APPLE_SLICE,
     ORANGE_SLICE,
     STRAWBERRY_SLICE,
     SLASH,
-    HIT,
     BOOST,
+    HIT,
 }
 
 impl SoundType {
     const fn file(&self) -> &str {
         match self {
-            Self::APPLE_SLICE | Self::BOOST => "audio/apple-slice.wav",
+            Self::APPLE_SLICE => "audio/apple-slice.wav",
             Self::ORANGE_SLICE => "audio/orange-slice.wav",
             Self::STRAWBERRY_SLICE => "audio/strawberry-slice.wav",
             Self::SLASH => "audio/slash.wav",
-            Self::HIT => "audio/hit.wav"
+            Self::BOOST => "audio/apple-slice.wav",
+            Self::HIT => "audio/hit.wav",
         }
     }
 }
 
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct SoundEvent {
     pub sound_type: SoundType,
 }
@@ -63,12 +64,13 @@ fn spawn_sound(
     mut events: EventReader<SoundEvent>
 ) {
     for event in &mut events {
+
         let handle = asset_server.load(event.sound_type.file());
 
         let volume =match event.sound_type {
-            SoundType::SLASH => 0.6,
+            SoundType::SLASH => 0.5,
             SoundType::HIT   => 0.7,
-            _                => 0.0
+            _                => 1.0
         };
 
         audio.play(handle).with_volume(volume);

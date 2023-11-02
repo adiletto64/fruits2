@@ -93,13 +93,13 @@ pub fn hit(
             if hit_the_fruit {
                 if !fruit.sliced {
                     start_slice_animation(&mut commands, &entity);
-                    hitted_fruits.push(fruit.clone());
-
                     session.score += 1;
+                    
                     fruit.fall_speed += 100.;
-
                     fruit.spread_speed = (randint(-5, 5) as f32) * 100.;
                     fruit.sliced = true;
+
+                    hitted_fruits.push(fruit.clone());
                 }
                 
                 if fruit.fruit_type == FruitType::PINEAPPLE {
@@ -111,9 +111,8 @@ pub fn hit(
 
         if !hitted_fruits.is_empty() {
             sound.send(SoundEvent::sound(SoundType::HIT));
-            
-        } 
-        
+        }
+
         for fruit in hitted_fruits {
             match fruit.fruit_type {
                 FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
