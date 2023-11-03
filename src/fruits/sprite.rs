@@ -1,13 +1,13 @@
 use bevy::prelude::*;
-use crate::utils::random::randint;
-
+use crate::utils::random::{randint, probably};
 use super::fruit::FruitType;
 
 
-const FRUIT_IMAGES: [&str; 3] = [
+const FRUIT_IMAGES: [&str; 4] = [
     "apple-frames.png", 
     "strawberry.png", 
-    "orange.png"
+    "watermelon.png",
+    "orange.png",
 ];
 
 
@@ -15,17 +15,21 @@ const FRUIT_IMAGES: [&str; 3] = [
 #[derive(Resource)]
 pub struct FruitTextures {
     textures: Vec<Handle<TextureAtlas>>,
-    pineapple_texture: Handle<TextureAtlas>
+    pineapple_texture: Handle<TextureAtlas>,
 }
 
 impl FruitTextures {
     fn get_random_fruit(&self) -> (Handle<TextureAtlas>, FruitType) {
+        if probably(0.1) {
+            return (self.textures[2].clone(), FruitType::WATERMELON)
+        }
+
         let random_index = randint(1, 4);
 
         match random_index {
             1 => (self.textures[0].clone(), FruitType::APPLE),
             2 => (self.textures[1].clone(), FruitType::STRAWBERRY),
-            _ => (self.textures[2].clone(), FruitType::ORANGE)
+            _ => (self.textures[3].clone(), FruitType::ORANGE)
         }
     }
 
@@ -69,6 +73,36 @@ pub fn create_pineapple(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> Sp
         texture_atlas: fruit_assets.pineapple_texture.clone(),
         sprite: TextureAtlasSprite::new(0),
         transform,
+        ..default()
+    }
+}
+
+pub fn create_splash(
+    asset_server: &Res<AssetServer>, 
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>, 
+    x: f32, 
+    y: f32
+) -> SpriteSheetBundle {
+    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.));
+
+    let texture = TextureAtlas::from_grid(
+        asset_server.load("images/splash.png"),
+        Vec2::new(50., 50.),
+        6,
+        1,
+        None,
+        None
+    );
+
+    let texture_atlas = texture_atlases.add(texture);
+
+    SpriteSheetBundle { 
+        sprite: TextureAtlasSprite {
+            color: Color::hex("#ABFF0000").unwrap(),
+            ..default()
+        },
+        texture_atlas, 
+        transform, 
         ..default()
     }
 }

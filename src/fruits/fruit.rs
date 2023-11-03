@@ -20,6 +20,7 @@ pub enum FruitType {
     APPLE,
     STRAWBERRY,
     ORANGE,
+    WATERMELON,
     PINEAPPLE
 }
 
@@ -46,6 +47,9 @@ impl Fruit {
     }
 }
 
+
+#[derive(Component)]
+pub struct Splash;
 
 #[derive(Component)]
 pub struct HitAnimation {timer: Timer}
@@ -118,6 +122,7 @@ pub fn hit(
                 FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
                 FruitType::ORANGE =>     sound.send(SoundEvent::sound(SoundType::ORANGE_SLICE)),
                 FruitType::STRAWBERRY => sound.send(SoundEvent::sound(SoundType::STRAWBERRY_SLICE)),
+                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
                 FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::APPLE_SLICE))
             }
         }
