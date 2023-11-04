@@ -79,13 +79,36 @@ pub fn create_pineapple(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> Sp
     }
 }
 
+
+pub enum SplashColor {
+    Red,
+    Orange,
+    Yellow
+}
+
+impl SplashColor {
+    fn color(&self) -> Color {
+        match self {
+            Self::Orange => Color::rgba_u8(245, 155, 66, 200),
+            Self::Yellow => Color::rgba_u8(255, 230, 41, 200),
+            Self::Red    => Color::rgba_u8(247, 54, 32, 200)
+        }
+    }
+}
+
+
 pub fn create_splash(
     asset_server: &Res<AssetServer>, 
     texture_atlases: &mut ResMut<Assets<TextureAtlas>>, 
     x: f32, 
-    y: f32
+    y: f32,
+    color: SplashColor
 ) -> SpriteSheetBundle {
-    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.));
+    let transform = Transform::
+        from_xyz(x, y - 30., 1.)
+        .with_scale(Vec3::splat(4.))
+        .with_rotation(Quat::from_rotation_z(randint(0, 360) as f32))
+    ;
 
     let texture = TextureAtlas::from_grid(
         asset_server.load("images/splash.png"),
@@ -100,7 +123,7 @@ pub fn create_splash(
 
     SpriteSheetBundle { 
         sprite: TextureAtlasSprite {
-            color: Color::hex("#ABFF0000").unwrap(),
+            color: color.color(),
             ..default()
         },
         texture_atlas, 

@@ -7,7 +7,7 @@ use crate::chef::ChefHitEvent;
 use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
 
-use super::sprite::FruitTextures;
+use super::sprite::{FruitTextures, create_splash, SplashColor};
 use super::spawn::FruitSpawnTimer;
 
 
@@ -50,7 +50,13 @@ impl Fruit {
 
 
 #[derive(Component)]
-pub struct Splash;
+pub struct Splash {timer: Timer}
+
+impl Splash {
+    fn new() -> Self {
+        Self { timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating) }
+    }
+}
 
 #[derive(Component)]
 pub struct HitAnimation {timer: Timer}
@@ -83,7 +89,9 @@ pub fn hit(
     mut sound: EventWriter<SoundEvent>,
     mut query: Query<(&Transform, Entity, &mut Fruit)>,
     mut commands: Commands,
-    mut session: ResMut<Session>
+    mut session: ResMut<Session>,
+    asset_server: Res<AssetServer>, 
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>, 
 ) {
     for event in events.iter() {
         let mut hitted_fruits = Vec::<Fruit>::new();
@@ -110,22 +118,42 @@ pub fn hit(
                 if fruit.fruit_type == FruitType::PINEAPPLE {
                     session.boosts += 1;
                 }
+
+                // create splash effect
+                let splash_color = match fruit.fruit_type {
+                    FruitType::APPLE | FruitType::BANANA | FruitType::PINEAPPLE => SplashColor::Yellow,
+                    FruitType::ORANGE => SplashColor::Orange,
+                    FruitType::STRAWBERRY | FruitType::WATERMELON => SplashColor::Red
+                };
+
+                let sprite = create_splash(
+                    &asset_server, 
+                    &mut texture_atlases, 
+                    transform.translation.x, 
+                    transform.translation.y,
+                    splash_color
+                );
+                commands.spawn((Splash::new(), sprite));
+
             }
         };
+
         sound.send(SoundEvent::sound(SoundType::SLASH));
 
         if !hitted_fruits.is_empty() {
             sound.send(SoundEvent::sound(SoundType::HIT));
+            
         }
 
+        // send sound
         for fruit in hitted_fruits {
             match fruit.fruit_type {
                 FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
                 FruitType::ORANGE =>     sound.send(SoundEvent::sound(SoundType::ORANGE_SLICE)),
                 FruitType::STRAWBERRY => sound.send(SoundEvent::sound(SoundType::STRAWBERRY_SLICE)),
-                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),  // TODO set own sounds
-                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)), 
-                FruitType::BANANA =>     sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
+                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::WATERMELON_SLICE)),  // TODO set own sounds
+                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::PINEAPPLE_SLICE)), 
+                FruitType::BANANA =>     sound.send(SoundEvent::sound(SoundType::BANANA_SLICE)),
             }
         }
     }
@@ -233,5 +261,31 @@ pub fn animate_slice(
                 sprite.index += 1;
             }
         }        
+    }
+}
+
+
+pub fn animate_splash(
+    time: Res<Time>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Transform, &mut Splash, Entity)>,
+    mut commands: Commands
+) {
+    for (mut sprite, mut transform, mut splash, entity) in query.iter_mut() {
+        splash.timer.tick(time.delta());
+        if splash.timer.just_finished() {
+            if sprite.index < 5 { 
+                sprite.index += 1;
+                
+            }
+        }        
+
+        transform.translation.y -= 300. * time.delta_seconds();
+        
+        let alpha = sprite.color.a();
+        sprite.color.set_a(alpha - 0.01);
+
+        if transform.translation.y < -480. {
+            commands.entity(entity).despawn();
+        }
     }
 }

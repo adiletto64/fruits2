@@ -23,6 +23,9 @@ pub enum SoundType {
     APPLE_SLICE,
     ORANGE_SLICE,
     STRAWBERRY_SLICE,
+    PINEAPPLE_SLICE,
+    WATERMELON_SLICE,
+    BANANA_SLICE,
     SLASH,
     BOOST,
     HIT,
@@ -34,8 +37,11 @@ impl SoundType {
             Self::APPLE_SLICE => "audio/apple-slice.wav",
             Self::ORANGE_SLICE => "audio/orange-slice.wav",
             Self::STRAWBERRY_SLICE => "audio/strawberry-slice.wav",
+            Self::PINEAPPLE_SLICE  => "audio/pineapple.wav",
+            Self::WATERMELON_SLICE => "audio/watermelon.wav",
+            Self::BANANA_SLICE => "audio/banana.wav",
             Self::SLASH => "audio/slash.wav",
-            Self::BOOST => "audio/apple-slice.wav",
+            Self::BOOST => "audio/boost.wav",
             Self::HIT => "audio/hit.wav",
         }
     }
