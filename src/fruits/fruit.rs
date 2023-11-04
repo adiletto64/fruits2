@@ -21,7 +21,8 @@ pub enum FruitType {
     STRAWBERRY,
     ORANGE,
     WATERMELON,
-    PINEAPPLE
+    PINEAPPLE,
+    BANANA
 }
 
 
@@ -122,8 +123,9 @@ pub fn hit(
                 FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
                 FruitType::ORANGE =>     sound.send(SoundEvent::sound(SoundType::ORANGE_SLICE)),
                 FruitType::STRAWBERRY => sound.send(SoundEvent::sound(SoundType::STRAWBERRY_SLICE)),
-                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
-                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::APPLE_SLICE))
+                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),  // TODO set own sounds
+                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)), 
+                FruitType::BANANA =>     sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
             }
         }
     }

@@ -3,11 +3,12 @@ use crate::utils::random::{randint, probably};
 use super::fruit::FruitType;
 
 
-const FRUIT_IMAGES: [&str; 4] = [
+const FRUIT_IMAGES: [&str; 5] = [
     "apple-frames.png", 
     "strawberry.png", 
     "watermelon.png",
     "orange.png",
+    "banana.png"
 ];
 
 
@@ -24,11 +25,12 @@ impl FruitTextures {
             return (self.textures[2].clone(), FruitType::WATERMELON)
         }
 
-        let random_index = randint(1, 4);
+        let random_index = randint(1, 5);
 
         match random_index {
             1 => (self.textures[0].clone(), FruitType::APPLE),
             2 => (self.textures[1].clone(), FruitType::STRAWBERRY),
+            3 => (self.textures[4].clone(), FruitType::BANANA),
             _ => (self.textures[3].clone(), FruitType::ORANGE)
         }
     }

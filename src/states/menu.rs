@@ -34,7 +34,15 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_xyz(0., 140., 11.).with_scale(Vec3::splat(5.)),
         ..default()
     };
+
+    let keys = SpriteBundle {
+        texture: asset_server.load("images/keys.png"),
+        transform: Transform::from_xyz(-460., 140., 11.).with_scale(Vec3::splat(3.)),
+        ..default()
+    };
+
     commands.spawn((title, MenuItem));
+    commands.spawn((keys, MenuItem));
 
     let enter_game_text = text(&asset_server, "Press --Enter-- to start!", 0., 10., 40.);
     commands.spawn((enter_game_text, MenuItem));
