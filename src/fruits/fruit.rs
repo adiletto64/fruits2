@@ -2,13 +2,37 @@ use std::time::Duration;
 
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
+use crate::global::AppState;
 use crate::utils::random::randint;
 use crate::chef::ChefHitEvent;
 use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
 
-use super::sprite::{FruitTextures, create_splash, SplashColor};
-use super::spawn::FruitSpawnTimer;
+use super::penalty::WaveEvent;
+use super::sprite::FruitTextures;
+use super::spawn::SpawnTimer;
+use super::splash::SplashEvent;
+
+
+pub struct FruitPlugin;
+
+impl Plugin for FruitPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_systems(OnEnter::<AppState>(AppState::InGame),setup)
+            .add_systems(
+                Update, 
+                (
+                    fall,
+                    despawn_fallen_fruits,
+                    hit, 
+                    animate_slice, 
+                ).run_if(in_state(AppState::InGame))
+            )
+        ;
+    }
+}
+
 
 
 const FALL_SPEED: f32 = 400.;
@@ -32,7 +56,7 @@ pub struct Fruit {
     pub spread_speed: f32,
     pub fall_speed: f32,
     pub fruit_type: FruitType,
-    sliced: bool,
+    pub sliced: bool,
 }
 
 
@@ -46,26 +70,17 @@ impl Fruit {
             fruit_type: FruitType::APPLE,
         } 
     }
-}
 
-
-#[derive(Component)]
-pub struct Splash {timer: Timer}
-
-impl Splash {
-    fn new() -> Self {
-        Self { timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating) }
+    fn slice(&mut self) {
+        self.fall_speed += 100.;
+        self.spread_speed = (randint(-5, 5) as f32) * 100.;
+        self.sliced = true;
     }
 }
 
+
 #[derive(Component)]
 pub struct HitAnimation {timer: Timer}
-
-
-#[derive(Component)]
-pub struct Boost {
-    count: usize
-}
 
 
 pub fn setup(
@@ -75,7 +90,7 @@ pub fn setup(
     query: Query<Entity, With<Fruit>>
 ) {
     commands.insert_resource(FruitTextures::new(&asset_server, &mut texture_atlases));
-    commands.insert_resource(FruitSpawnTimer::new());
+    commands.insert_resource(SpawnTimer::new());
 
     // cleanup fruits on restart
     for entity in &query {
@@ -85,33 +100,30 @@ pub fn setup(
 
 
 pub fn hit(
+    mut commands: Commands,
+    
     mut events: EventReader<ChefHitEvent>, 
     mut sound: EventWriter<SoundEvent>,
+    mut splash: EventWriter<SplashEvent>,
+    
     mut query: Query<(&Transform, Entity, &mut Fruit)>,
-    mut commands: Commands,
     mut session: ResMut<Session>,
-    asset_server: Res<AssetServer>, 
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>, 
 ) {
     for event in events.iter() {
         let mut hitted_fruits = Vec::<Fruit>::new();
 
         for (transform, entity, mut fruit) in &mut query {
 
-            let hit_the_fruit = collide(
+            let successfull_hit = collide(
                 transform.translation, Vec2::new(140., 220.), 
                 event.translation, Vec2::new(40., 40.), 
             ).is_some();
 
-            if hit_the_fruit {
+            if successfull_hit {
                 if !fruit.sliced {
-                    start_slice_animation(&mut commands, &entity);
                     session.score += 1;
-                    
-                    fruit.fall_speed += 100.;
-                    fruit.spread_speed = (randint(-5, 5) as f32) * 100.;
-                    fruit.sliced = true;
-
+                    start_slice_animation(&mut commands, &entity);
+                    fruit.slice();
                     hitted_fruits.push(fruit.clone());
                 }
                 
@@ -119,22 +131,11 @@ pub fn hit(
                     session.boosts += 1;
                 }
 
-                // create splash effect
-                let splash_color = match fruit.fruit_type {
-                    FruitType::APPLE | FruitType::BANANA | FruitType::PINEAPPLE => SplashColor::Yellow,
-                    FruitType::ORANGE => SplashColor::Orange,
-                    FruitType::STRAWBERRY | FruitType::WATERMELON => SplashColor::Red
-                };
-
-                let sprite = create_splash(
-                    &asset_server, 
-                    &mut texture_atlases, 
-                    transform.translation.x, 
-                    transform.translation.y,
-                    splash_color
-                );
-                commands.spawn((Splash::new(), sprite));
-
+                splash.send(SplashEvent{
+                    x: transform.translation.x,
+                    y: transform.translation.y,
+                    fruit_type: fruit.fruit_type.clone()
+                });
             }
         };
 
@@ -147,14 +148,7 @@ pub fn hit(
 
         // send sound
         for fruit in hitted_fruits {
-            match fruit.fruit_type {
-                FruitType::APPLE =>      sound.send(SoundEvent::sound(SoundType::APPLE_SLICE)),
-                FruitType::ORANGE =>     sound.send(SoundEvent::sound(SoundType::ORANGE_SLICE)),
-                FruitType::STRAWBERRY => sound.send(SoundEvent::sound(SoundType::STRAWBERRY_SLICE)),
-                FruitType::WATERMELON => sound.send(SoundEvent::sound(SoundType::WATERMELON_SLICE)),  // TODO set own sounds
-                FruitType::PINEAPPLE =>  sound.send(SoundEvent::sound(SoundType::PINEAPPLE_SLICE)), 
-                FruitType::BANANA =>     sound.send(SoundEvent::sound(SoundType::BANANA_SLICE)),
-            }
+            sound.send(SoundEvent::fruit_sound(fruit.fruit_type))
         }
     }
 }
@@ -180,57 +174,18 @@ pub fn fall(
 pub fn despawn_fallen_fruits(
     query: Query<(&Transform, &Fruit, Entity)>, 
     mut commands: Commands,
-    mut session: ResMut<Session>
+    mut session: ResMut<Session>,
+    mut wave: EventWriter<WaveEvent>,
+    mut sound: EventWriter<SoundEvent>
 ) {
     for (transform, fruit, entity) in &query {
         if transform.translation.y <= -480.0 {
             if !fruit.sliced {
                 session.lives_left -= 1;
+                wave.send(WaveEvent(transform.translation.x));
+                sound.send(SoundEvent::sound(SoundType::PENALTY));
             }
             commands.entity(entity).despawn();
-        }
-    }
-}
-
-
-pub fn spawn_boost(
-    mut commands: Commands, 
-    mut session: ResMut<Session>,
-    keys: Res<Input<KeyCode>>,
-    query: Query<(&Transform, &Fruit)>
-) {
-    if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
-        let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count();
-
-        commands.spawn(Boost {count});
-        session.boosts -= 1;
-    }
-}
-
-
-pub fn process_boost(
-    mut commands: Commands,
-    mut boosts: Query<(&mut Boost, Entity)>,
-    mut query: Query<(&mut Fruit, Entity)>,
-    mut session: ResMut<Session>,
-    mut sound_event_writer: EventWriter<SoundEvent>,
-) {
-    for (mut boost, boost_entity) in &mut boosts {
-        for (mut fruit, entity) in &mut query {
-            if boost.count > 0 {
-                start_slice_animation(&mut commands, &entity);
-
-                session.score += 1;
-                fruit.fall_speed += 100.;
-                fruit.sliced = true;
-
-                sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
-                boost.count -= 1;
-            }
-        }
-
-        if boost.count == 0 {
-            commands.entity(boost_entity).despawn();
         }
     }
 }
@@ -261,31 +216,5 @@ pub fn animate_slice(
                 sprite.index += 1;
             }
         }        
-    }
-}
-
-
-pub fn animate_splash(
-    time: Res<Time>,
-    mut query: Query<(&mut TextureAtlasSprite, &mut Transform, &mut Splash, Entity)>,
-    mut commands: Commands
-) {
-    for (mut sprite, mut transform, mut splash, entity) in query.iter_mut() {
-        splash.timer.tick(time.delta());
-        if splash.timer.just_finished() {
-            if sprite.index < 5 { 
-                sprite.index += 1;
-                
-            }
-        }        
-
-        transform.translation.y -= 300. * time.delta_seconds();
-        
-        let alpha = sprite.color.a();
-        sprite.color.set_a(alpha - 0.01);
-
-        if transform.translation.y < -480. {
-            commands.entity(entity).despawn();
-        }
     }
 }

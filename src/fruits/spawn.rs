@@ -16,10 +16,10 @@ const SPAWN_INTENSITY_UPDATE_PERCENT: u32 = 95;
 const INITIAL_SPAWN_TIMER: Duration = Duration::from_millis(800);
 
 
-pub struct FruitSpawnPlugin;
+pub struct SpawnPlugin;
 
 
-impl Plugin for FruitSpawnPlugin {
+impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update, (spawn_fruits, increase_spawn_intensity).run_if(in_state(AppState::InGame))
@@ -30,9 +30,9 @@ impl Plugin for FruitSpawnPlugin {
 
 
 #[derive(Resource)]
-pub struct FruitSpawnTimer(pub Timer);
+pub struct SpawnTimer(pub Timer);
 
-impl FruitSpawnTimer {
+impl SpawnTimer {
     pub fn new() -> Self {
         Self(Timer::new(INITIAL_SPAWN_TIMER, TimerMode::Repeating))
     }
@@ -53,7 +53,7 @@ fn random_fruit_type() -> FoodType {
 
 pub fn spawn_fruits(
     mut commands: Commands,
-    mut spawn_timer: ResMut<FruitSpawnTimer>,
+    mut spawn_timer: ResMut<SpawnTimer>,
     time: Res<Time>,
     fruit_assets: Res<FruitTextures>,
 ) {
@@ -98,7 +98,7 @@ pub fn spawn_fruits(
 
 pub fn increase_spawn_intensity(
     events: EventReader<LevelUpdate>,
-    mut spawn_timer: ResMut<FruitSpawnTimer>
+    mut spawn_timer: ResMut<SpawnTimer>
 ) {
     if !events.is_empty() {
         let duration = spawn_timer.0.duration();

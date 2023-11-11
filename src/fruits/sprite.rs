@@ -133,6 +133,33 @@ pub fn create_splash(
 }
 
 
+pub fn create_wave(
+    asset_server: &Res<AssetServer>, 
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>, 
+    x: f32 
+) -> SpriteSheetBundle {
+    let transform = Transform::from_xyz(x, -220., 1.).with_scale(Vec3::splat(4.));
+
+    let texture = TextureAtlas::from_grid(
+        asset_server.load("images/wave.png"),
+        Vec2::new(60., 80.),
+        6,
+        1,
+        None,
+        None
+    );
+
+    let texture_atlas = texture_atlases.add(texture);
+
+    SpriteSheetBundle { 
+        texture_atlas, 
+        transform, 
+        ..default()
+    }
+}
+
+
+
 fn get_texture(image: Handle<Image>) -> TextureAtlas {
     TextureAtlas::from_grid(
         image,
