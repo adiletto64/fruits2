@@ -63,14 +63,31 @@ fn respawn_hearts(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 
-fn update_live(mut commands: Commands, query: Query<(Entity, &Live)>, info: Res<Session>) {
-    if info.lives_left != query.iter().len() as u32 {
-        for (entity, live) in &query {
-            if live.0 - 1 == info.lives_left {
-                commands.entity(entity).despawn();
-                break;
-            } 
+fn update_live(
+    mut commands: Commands, 
+    query: Query<(Entity, &Live)>, 
+    session: Res<Session>,
+    asset_server: Res<AssetServer>
+) {
+    if session.is_changed() {
+        // clear all hearts
+        for (entity, _) in &query {
+            commands.entity(entity).despawn();
         }
+
+        // respawn all hearts for given lives number
+        for i in 0..session.lives_left {
+            commands.spawn((
+                SpriteBundle {
+                    texture: asset_server.load("images/heart.png"),
+                    transform: Transform::from_xyz(530. - 40. * i as f32, 180., 10.).with_scale(Vec3::splat(3.)),
+                    ..default()
+                },
+                TextInfo,
+                Live(i+1)
+            ));
+        }
+
     }
 }
 
