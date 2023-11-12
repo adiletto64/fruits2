@@ -54,6 +54,7 @@ impl SoundEvent {
             FruitType::PINEAPPLE  => "audio/pineapple.wav",
             FruitType::WATERMELON => "audio/watermelon.wav",
             FruitType::BANANA => "audio/banana.wav",
+            FruitType::POME => "audio/pome.wav"
         };
 
         Self {sound: file}

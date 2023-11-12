@@ -12,6 +12,7 @@ use super::penalty::WaveEvent;
 use super::sprite::FruitTextures;
 use super::spawn::SpawnTimer;
 use super::splash::SplashEvent;
+use super::text::TextEvent;
 
 
 pub struct FruitPlugin;
@@ -46,7 +47,8 @@ pub enum FruitType {
     ORANGE,
     WATERMELON,
     PINEAPPLE,
-    BANANA
+    BANANA,
+    POME
 }
 
 
@@ -72,7 +74,9 @@ impl Fruit {
     }
 
     fn slice(&mut self) {
-        self.fall_speed += 100.;
+        if self.fruit_type != FruitType::POME {
+            self.fall_speed += 100.;
+        }
         self.spread_speed = (randint(-5, 5) as f32) * 100.;
         self.sliced = true;
     }
@@ -105,6 +109,7 @@ pub fn hit(
     mut events: EventReader<ChefHitEvent>, 
     mut sound: EventWriter<SoundEvent>,
     mut splash: EventWriter<SplashEvent>,
+    mut text: EventWriter<TextEvent>,
     
     mut query: Query<(&Transform, Entity, &mut Fruit)>,
     mut session: ResMut<Session>,
@@ -125,11 +130,28 @@ pub fn hit(
                     start_slice_animation(&mut commands, &entity);
                     fruit.slice();
                     hitted_fruits.push(fruit.clone());
+
+
+                    if fruit.fruit_type == FruitType::PINEAPPLE {
+                        session.boosts += 1;
+                        text.send(TextEvent{
+                            text: "+1 boost!".to_string(), 
+                            y: transform.translation.y,
+                            x: transform.translation.x
+                        });
+                    } 
+
+                    else if fruit.fruit_type == FruitType::POME && session.lives_left < 5 {
+                        session.lives_left += 1;
+
+                        text.send(TextEvent{
+                            text: "+1 live!".to_string(), 
+                            y: transform.translation.y,
+                            x: transform.translation.x
+                        });
+                    }
                 }
                 
-                if fruit.fruit_type == FruitType::PINEAPPLE {
-                    session.boosts += 1;
-                }
 
                 splash.send(SplashEvent{
                     x: transform.translation.x,

@@ -6,6 +6,7 @@ pub mod spawn;
 pub mod splash;
 pub mod boost;
 pub mod penalty;
+pub mod text;
 
 
 pub struct FruitPlugin;
@@ -18,7 +19,8 @@ impl Plugin for FruitPlugin {
                 splash::SplashPlugin,
                 boost::BoostPlugin,
                 fruit::FruitPlugin,
-                penalty::PenaltyPlugin
+                penalty::PenaltyPlugin,
+                text::TextPlugin
             ))
         ;
     }

@@ -49,7 +49,8 @@ pub fn spawn_splash(
         let splash_color = match event.fruit_type {
             FruitType::APPLE | FruitType::BANANA | FruitType::PINEAPPLE => SplashColor::Yellow,
             FruitType::ORANGE => SplashColor::Orange,
-            FruitType::STRAWBERRY | FruitType::WATERMELON => SplashColor::Red
+            FruitType::STRAWBERRY | FruitType::WATERMELON => SplashColor::Red,
+            FruitType::POME => SplashColor::Orange
         };
 
         let sprite = create_splash(

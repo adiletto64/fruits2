@@ -3,9 +3,9 @@ use std::time::Duration;
 use bevy::prelude::*;
 
 use super::fruit::{Fruit, FruitType};
-use super::sprite::{create_pineapple, create_sprite, FruitTextures};
+use super::sprite::{create_pineapple, create_pome, create_sprite, FruitTextures};
 
-use crate::utils::random::randint;
+use crate::utils::random::{randint, probably};
 use crate::level::LevelUpdate;
 use crate::global::AppState;
 
@@ -14,6 +14,9 @@ const FRUITS_SPAWN_BORDERS: (i32, i32) = (-350, 350);
 
 const SPAWN_INTENSITY_UPDATE_PERCENT: u32 = 95;
 const INITIAL_SPAWN_TIMER: Duration = Duration::from_millis(800);
+
+const PINEAPPLE_SPAWN_PROPABILITY: f64 = 0.04;
+const POME_SPAWN_PROPABILITY: f64 = 0.03;
 
 
 pub struct SpawnPlugin;
@@ -41,13 +44,21 @@ impl SpawnTimer {
 
 enum FoodType {
     FRUIT,
-    PINEAPPLE
+    PINEAPPLE,
+    POME
 }
 
 
 fn random_fruit_type() -> FoodType {
-    let n = randint(1, 20);
-    if n == 5 { FoodType::PINEAPPLE } else { FoodType::FRUIT } 
+    if probably(PINEAPPLE_SPAWN_PROPABILITY) {
+        return FoodType::PINEAPPLE;
+    }
+
+    if probably(POME_SPAWN_PROPABILITY) {
+        return FoodType::POME;
+    }
+    
+    return FoodType::FRUIT;
 }
 
 
@@ -71,6 +82,14 @@ pub fn spawn_fruits(
                 let mut fruit = Fruit::new();
                 fruit.fruit_type = FruitType::PINEAPPLE;
                 fruit.rotation_speed = 0.0;
+                
+                commands.spawn((sprite, fruit));
+            }
+            FoodType::POME => {
+                let sprite: SpriteSheetBundle = create_pome(&fruit_assets, x, 350.);
+                
+                let mut fruit = Fruit::new();
+                fruit.fruit_type = FruitType::POME;
                 
                 commands.spawn((sprite, fruit));
             }
@@ -108,4 +127,3 @@ pub fn increase_spawn_intensity(
         }
     }
 }
-

@@ -3,12 +3,13 @@ use crate::utils::random::{randint, probably};
 use super::fruit::FruitType;
 
 
-const FRUIT_IMAGES: [&str; 5] = [
+const FRUIT_IMAGES: [&str; 6] = [
     "apple-frames.png", 
     "strawberry.png", 
     "watermelon.png",
     "orange.png",
-    "banana.png"
+    "banana.png",
+    "pome.png"
 ];
 
 
@@ -17,7 +18,9 @@ const FRUIT_IMAGES: [&str; 5] = [
 pub struct FruitTextures {
     textures: Vec<Handle<TextureAtlas>>,
     pineapple_texture: Handle<TextureAtlas>,
+    pome_texture: Handle<TextureAtlas>
 }
+
 
 impl FruitTextures {
     fn get_random_fruit(&self) -> (Handle<TextureAtlas>, FruitType) {
@@ -48,8 +51,11 @@ impl FruitTextures {
     
         let pineapple = get_texture(asset_server.load("images/fruits/pineapple.png"));
         let pineapple_texture = texture_atlases.add(pineapple);
+
+        let pome = get_texture(asset_server.load("images/fruits/pome.png"));
+        let pome_texture = texture_atlases.add(pome);
     
-        FruitTextures { textures, pineapple_texture }
+        FruitTextures { textures, pineapple_texture, pome_texture }
     }
 }
 
@@ -78,6 +84,19 @@ pub fn create_pineapple(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> Sp
         ..default()
     }
 }
+
+
+pub fn create_pome(fruit_assets: &Res<FruitTextures>, x: f32, y: f32) -> SpriteSheetBundle {
+    let transform = Transform::from_xyz(x, y, 2.).with_scale(Vec3::splat(3.));
+
+    SpriteSheetBundle {
+        texture_atlas: fruit_assets.pome_texture.clone(),
+        sprite: TextureAtlasSprite::new(0),
+        transform,
+        ..default()
+    }
+}
+
 
 
 pub enum SplashColor {
