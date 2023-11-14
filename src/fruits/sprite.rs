@@ -193,7 +193,7 @@ pub fn create_boost_shot(
 
     let texture = TextureAtlas::from_grid(
         asset_server.load("images/boost_shot.png"),
-        Vec2::new(60., 80.),
+        Vec2::new(100., 10.),
         6,
         1,
         None,

@@ -134,8 +134,8 @@ pub fn process_boost(
 
 pub fn spawn_boost_shot(
     mut commands: Commands,
-    mut event_reader: EventReader<BoostEvent>,
     asset_server: Res<AssetServer>,
+    mut event_reader: EventReader<BoostEvent>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>, 
 ){
     for event in event_reader.iter() {
@@ -147,17 +147,17 @@ pub fn spawn_boost_shot(
         let x = (x1 - x2) / 2.;
         let y = (y1 - y2) / 2.;
 
-        let angle = (y2 - y1).atan2(x1 - x2);
+        let angle = (y2 - y1).atan2(x2 - x1);
 
         let sprite = create_boost_shot(
             &asset_server, 
             &mut texture_atlases, 
             x, 
-            y,
+            y - 400.,
             angle
         );
         
-        commands.spawn((BoostShot(Timer::from_seconds(0.3, TimerMode::Repeating)), sprite));        
+        commands.spawn((BoostShot(Timer::from_seconds(0.08, TimerMode::Repeating)), sprite));        
     }
 }
 
