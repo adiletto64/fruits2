@@ -178,6 +178,38 @@ pub fn create_wave(
 }
 
 
+pub fn create_boost_shot(
+    asset_server: &Res<AssetServer>, 
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>, 
+    x: f32,
+    y: f32,
+    angle: f32
+) -> SpriteSheetBundle {
+    let transform = Transform::
+        from_xyz(x, y, 1.)
+        .with_scale(Vec3::splat(5.))
+        .with_rotation(Quat::from_rotation_z(angle))
+    ;
+
+    let texture = TextureAtlas::from_grid(
+        asset_server.load("images/boost_shot.png"),
+        Vec2::new(60., 80.),
+        6,
+        1,
+        None,
+        None
+    );
+
+    let texture_atlas = texture_atlases.add(texture);
+
+    SpriteSheetBundle { 
+        texture_atlas, 
+        transform, 
+        ..default()
+    }
+}
+
+
 
 fn get_texture(image: Handle<Image>) -> TextureAtlas {
     TextureAtlas::from_grid(
