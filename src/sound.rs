@@ -2,7 +2,6 @@
 
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
-
 use crate::fruits::fruit::FruitType;
 
 
@@ -23,9 +22,10 @@ impl Plugin for SoundPlugin {
 #[derive(PartialEq, Eq, Debug)]
 pub enum SoundType {
     SLASH,
-    BOOST,
     HIT,
     PENALTY,
+    BOOST,
+    BOOST_HIT,
 }
 
 
@@ -38,9 +38,10 @@ impl SoundEvent {
     pub const fn sound(sound_type: SoundType) -> Self {
         let file = match sound_type {
             SoundType::SLASH => "audio/slash.wav",
-            SoundType::BOOST => "audio/boost.wav",
             SoundType::HIT => "audio/hit.wav",
-            SoundType::PENALTY => "audio/penalty.wav"
+            SoundType::PENALTY => "audio/penalty.wav",
+            SoundType::BOOST => "audio/boost.wav",
+            SoundType::BOOST_HIT => "audio/critical.wav"
         };
 
         Self {sound: file}

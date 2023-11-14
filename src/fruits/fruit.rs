@@ -38,6 +38,7 @@ impl Plugin for FruitPlugin {
 
 const FALL_SPEED: f32 = 400.;
 const SLICE_ANIMATION_SPEED: u64 = 80;
+pub const DESPAWN_FLOOR: f32 = -480.;
 
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -73,7 +74,7 @@ impl Fruit {
         } 
     }
 
-    fn slice(&mut self) {
+    pub fn slice(&mut self) {
         if self.fruit_type != FruitType::POME {
             self.fall_speed += 100.;
         }
@@ -201,7 +202,7 @@ pub fn despawn_fallen_fruits(
     mut sound: EventWriter<SoundEvent>
 ) {
     for (transform, fruit, entity) in &query {
-        if transform.translation.y <= -480.0 {
+        if transform.translation.y <= DESPAWN_FLOOR {
             if !fruit.sliced {
                 session.lives_left -= 1;
                 wave.send(WaveEvent(transform.translation.x));

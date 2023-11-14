@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use bevy::prelude::{Res, AssetServer, TextStyle, Text2dBundle, Text, TextAlignment, Transform, Color, default};
 
 
