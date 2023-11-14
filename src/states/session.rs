@@ -45,7 +45,7 @@ impl Session {
 }
 
 
-fn setup(mut commands: Commands) {
+pub fn setup(mut commands: Commands) {
     commands.insert_resource(Session::default());
 }
 

@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::global::AppState;
+
 use super::sprite::create_wave;
 
 
@@ -11,7 +13,7 @@ pub struct PenaltyPlugin;
 impl Plugin for PenaltyPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (spawn_wave, animate_wave))
+            .add_systems(Update, (spawn_wave, animate_wave).run_if(in_state(AppState::InGame)))
             .add_event::<WaveEvent>()
         ;
     }

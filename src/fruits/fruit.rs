@@ -15,12 +15,24 @@ use super::splash::SplashEvent;
 use super::text::TextEvent;
 
 
+const FROM_MENU_ENTER: OnTransition<AppState> = OnTransition::<AppState> {
+    from: AppState::MainMenu,
+    to: AppState::InGame
+};
+
+const FROM_FINISH_ENTER: OnTransition<AppState> = OnTransition::<AppState> {
+    from: AppState::Finish,
+    to: AppState::InGame
+};
+
+
 pub struct FruitPlugin;
 
 impl Plugin for FruitPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(OnEnter::<AppState>(AppState::InGame),setup)
+            .add_systems(FROM_MENU_ENTER, setup)
+            .add_systems(FROM_FINISH_ENTER,setup)
             .add_systems(
                 Update, 
                 (

@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::global::AppState;
+
 use super::fruit::FruitType;
 use super::sprite::{create_splash, SplashColor};
 
@@ -12,7 +14,7 @@ pub struct SplashPlugin;
 impl Plugin for SplashPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (spawn_splash, animate_splash))
+            .add_systems(Update, (spawn_splash, animate_splash).run_if(in_state(AppState::InGame)))
             .add_event::<SplashEvent>()
         ;
     }

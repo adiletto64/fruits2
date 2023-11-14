@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::global::AppState;
 use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
 
@@ -14,7 +15,7 @@ pub struct BoostPlugin;
 impl Plugin for BoostPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (spawn_boost, process_boost, spawn_boost_shot, animate_boost_shot))
+            .add_systems(Update, (spawn_boost, process_boost, spawn_boost_shot, animate_boost_shot).run_if(in_state(AppState::InGame)))
             .add_event::<BoostEvent>()
         ;
     }
@@ -46,7 +47,7 @@ pub fn spawn_boost(
     mut sound_event_writer: EventWriter<SoundEvent>,
 ) {
     if keys.just_pressed(KeyCode::A) && session.boosts > 0 {
-        let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count();
+        let count = query.iter().filter(|(t, _)| t.translation.y < 300.).count() + 5;
 
         sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
 
@@ -78,7 +79,7 @@ pub fn process_boost(
             continue;
         }
 
-        // get fruits with the lowest y coords
+        // get fruit with the lowest y coords
         let result = query
             .iter_mut()
             .filter(|(f, t, _)| !f.sliced && t.translation.y > DESPAWN_FLOOR - 20.)

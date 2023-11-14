@@ -35,6 +35,12 @@ pub fn setup(
 }
 
 
+pub fn reset_speed(mut query: Query<&mut Player>) {
+    let player = &mut query.single_mut();
+    player.speed = SPEED;
+}
+
+
 pub fn animate(
     time: Res<Time>,
     mut query: Query<(&mut TextureAtlasSprite, &mut AnimationSlice), With<Player>>,
@@ -78,7 +84,7 @@ pub fn hit(
     mut event: EventWriter<ChefHitEvent>,
     mut query: Query<(&Transform, &mut AnimationSlice), With<Player>>,
 ) { 
-    if keys.just_pressed(KeyCode::Space) {
+    if keys.just_pressed(KeyCode::F) {
         for (transform, mut animation) in &mut query {
             event.send(ChefHitEvent {
                 translation: transform.translation
