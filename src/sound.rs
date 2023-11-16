@@ -26,6 +26,8 @@ pub enum SoundType {
     PENALTY,
     BOOST,
     BOOST_HIT,
+    GAME_OVER,
+    RECORD,
 }
 
 
@@ -41,7 +43,9 @@ impl SoundEvent {
             SoundType::HIT => "audio/hit.wav",
             SoundType::PENALTY => "audio/penalty.wav",
             SoundType::BOOST => "audio/boost.wav",
-            SoundType::BOOST_HIT => "audio/critical.wav"
+            SoundType::BOOST_HIT => "audio/critical.wav",
+            SoundType::GAME_OVER => "audio/game-over.wav",
+            SoundType::RECORD => "audio/record.wav"
         };
 
         Self {sound: file}
