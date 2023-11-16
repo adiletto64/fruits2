@@ -21,7 +21,7 @@ impl Plugin for InfoPlugin {
 struct TextInfo;
 
 #[derive(Component)]
-struct Live(u32);
+struct Live;
 
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -57,7 +57,7 @@ fn respawn_hearts(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             TextInfo,
-            Live(i+1)
+            Live
         ));
     }
 }
@@ -75,6 +75,18 @@ fn update_live(
             commands.entity(entity).despawn();
         }
 
+        for i in 0..(5 - session.lives_left) {
+            commands.spawn((
+                SpriteBundle {
+                    texture: asset_server.load("images/heart-empty.png"),
+                    transform: Transform::from_xyz(370. + 40. * i as f32, 180., 10.).with_scale(Vec3::splat(3.)),
+                    ..default()
+                },
+                TextInfo,
+                Live
+            ));
+        }
+
         // respawn all hearts for given lives number
         for i in 0..session.lives_left {
             commands.spawn((
@@ -84,7 +96,7 @@ fn update_live(
                     ..default()
                 },
                 TextInfo,
-                Live(i+1)
+                Live
             ));
         }
 
