@@ -1,10 +1,10 @@
-use std::time::Duration;
 use bevy::prelude::*;
 
+use crate::components::Clock;
 use crate::states::session::Session;
 use crate::global::AppState;
 
-const LEVEL_UPDATE_TIME: u64 = 6;
+const LEVEL_UPDATE_TIME: f32 = 6.;
 
 
 pub struct LevelPlugin;
@@ -30,7 +30,7 @@ pub struct LevelUpdate {
 
 #[derive(Resource)]
 struct Level { 
-    timer: Timer, 
+    clock: Clock, 
     number: u32
 }
 
@@ -38,7 +38,7 @@ struct Level {
 fn startup(mut commands: Commands) {
     commands.insert_resource(
         Level {
-            timer: Timer::new(Duration::from_secs(LEVEL_UPDATE_TIME), TimerMode::Repeating),
+            clock: Clock::seconds(LEVEL_UPDATE_TIME),
             number: 1
         }
     );
@@ -51,9 +51,9 @@ fn update_level(
     mut event: EventWriter<LevelUpdate>,
     mut session: ResMut<Session>
 ) {
-    level.timer.tick(time.delta());
+    level.clock.tick(time.delta());
 
-    if level.timer.finished() {
+    if level.clock.finished() {
         level.number += 1;
         event.send(LevelUpdate { number: level.number });
         session.level = level.number;

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::components::Clock;
 use crate::global::AppState;
 use crate::utils::ui::text;
 use crate::utils::record;
@@ -25,9 +26,7 @@ impl Plugin for FinishPlugin {
 struct FinishItem;
 
 #[derive(Component)]
-struct Confetti {
-    timer: Timer
-}
+struct Confetti;
 
 
 fn setup(
@@ -107,7 +106,7 @@ fn setup(
             ..default()
         };
 
-        commands.spawn((confetti, Confetti{timer: Timer::from_seconds(0.3, TimerMode::Repeating)}, FinishItem));
+        commands.spawn((confetti, Confetti, Clock::seconds(0.3), FinishItem));
         record::write_record(session.score);
     }
 }
@@ -129,13 +128,13 @@ fn restart(keys: Res<Input<KeyCode>>, mut app_state: ResMut<NextState<AppState>>
 
 fn animate_confetti(
     time: Res<Time>,
-    mut query: Query<(&mut Confetti, &mut TextureAtlasSprite, &mut Transform, Entity)>,
+    mut query: Query<(&mut Clock, &mut TextureAtlasSprite, &mut Transform, Entity), With<Confetti>>,
     mut commands: Commands
 ) {
-    for (mut confetti, mut sprite, mut transform, entity) in &mut query {
-        confetti.timer.tick(time.delta());
+    for (mut clock, mut sprite, mut transform, entity) in &mut query {
+        clock.tick(time.delta());
         
-        if confetti.timer.finished() {
+        if clock.finished() {
             sprite.index = if sprite.index == 0 { 1 } else { 0 };
         }
 

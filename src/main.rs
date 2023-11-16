@@ -24,6 +24,7 @@ mod sound;
 mod states;
 mod utils;
 mod global;
+mod components;
 
 
 

@@ -1,8 +1,6 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 
-use crate::global::AppState;
+use crate::{global::AppState, components::Clock};
 
 use super::sprite::create_wave;
 
@@ -23,9 +21,6 @@ impl Plugin for PenaltyPlugin {
 #[derive(Component)]
 pub struct Wave;
 
-#[derive(Component)]
-pub struct WaveTimer(pub Timer);
-
 #[derive(Event)]
 pub struct WaveEvent(pub f32);
 
@@ -40,7 +35,7 @@ fn spawn_wave(
         commands.spawn((
             Wave, 
             create_wave(&asset_server, &mut texture_atlases, event.0),
-            WaveTimer(Timer::new(Duration::from_millis(70), TimerMode::Repeating))
+            Clock::millis(70)
         ));
     }
 }
@@ -48,13 +43,13 @@ fn spawn_wave(
 
 fn animate_wave(
     time: Res<Time>,
-    mut query: Query<(&mut TextureAtlasSprite, &mut WaveTimer, Entity), With<Wave>>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Clock, Entity), With<Wave>>,
     mut commands: Commands
 ) {
-    for (mut sprite, mut timer, entity) in query.iter_mut() {
-        timer.0.tick(time.delta());
+    for (mut sprite, mut clock, entity) in query.iter_mut() {
+        clock.tick(time.delta());
 
-        if timer.0.finished() {
+        if clock.finished() {
             if sprite.index == 5 {
                 commands.entity(entity).despawn();
             }else {

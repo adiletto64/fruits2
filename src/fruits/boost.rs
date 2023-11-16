@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::components::Clock;
 use crate::global::AppState;
 use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
@@ -24,12 +25,11 @@ impl Plugin for BoostPlugin {
 
 #[derive(Component)]
 pub struct Boost {
-    count: usize,
-    timer: Timer
+    count: usize
 }
 
 #[derive(Component)]
-struct BoostShot(Timer);
+struct BoostShot;
 
 
 #[derive(Event)]
@@ -51,10 +51,7 @@ pub fn spawn_boost(
 
         sound_event_writer.send(SoundEvent::sound(SoundType::BOOST));
 
-        commands.spawn(Boost {
-            count,
-            timer: Timer::from_seconds(0.1, TimerMode::Repeating)
-        });
+        commands.spawn((Boost {count}, Clock::seconds(0.1)));
         session.boosts -= 1;
     }
 }
@@ -63,7 +60,7 @@ pub fn spawn_boost(
 pub fn process_boost(
     time: Res<Time>,
     mut commands: Commands,
-    mut boosts: Query<(&mut Boost, Entity)>,
+    mut boosts: Query<(&mut Boost, &mut Clock, Entity)>,
     mut query: Query<(&mut Fruit, &Transform, Entity)>,
     mut session: ResMut<Session>,
 
@@ -72,10 +69,10 @@ pub fn process_boost(
     mut splash: EventWriter<SplashEvent>,
     mut boost_shot: EventWriter<BoostEvent>
 ) {
-    for (mut boost, boost_entity) in &mut boosts {
-        boost.timer.tick(time.delta());
+    for (mut boost, mut clock, boost_entity) in &mut boosts {
+        clock.tick(time.delta());
 
-        if !boost.timer.finished() {
+        if !clock.finished() {
             continue;
         }
 
@@ -158,20 +155,19 @@ pub fn spawn_boost_shot(
             angle
         );
         
-        commands.spawn((BoostShot(Timer::from_seconds(0.08, TimerMode::Repeating)), sprite));        
+        commands.spawn((BoostShot, Clock::seconds(0.08), sprite));        
     }
 }
 
 
 fn animate_boost_shot(
     time: Res<Time>,
-    mut query: Query<(&mut TextureAtlasSprite, &mut BoostShot, Entity)>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Clock, Entity), With<BoostShot>>,
     mut commands: Commands
 ) {
-    for (mut sprite, mut boost, entity) in query.iter_mut() {
-        boost.0.tick(time.delta());
-
-        if !boost.0.finished() {
+    for (mut sprite, mut clock, entity) in query.iter_mut() {
+        clock.tick(time.delta());
+        if !clock.finished() {
             continue;
         }
 

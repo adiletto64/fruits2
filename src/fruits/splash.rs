@@ -1,7 +1,6 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 
+use crate::components::Clock;
 use crate::global::AppState;
 
 use super::fruit::FruitType;
@@ -25,19 +24,13 @@ impl Plugin for SplashPlugin {
 const SPLASH_ANIMATION_SPEED: u64 = 80;
 
 #[derive(Component)]
-pub struct Splash {timer: Timer}
+pub struct Splash;
 
 #[derive(Event)]
 pub struct SplashEvent {
     pub x: f32, 
     pub y: f32, 
     pub fruit_type: FruitType
-}
-
-impl Splash {
-    fn new() -> Self {
-        Self { timer: Timer::new(Duration::from_millis(SPLASH_ANIMATION_SPEED), TimerMode::Repeating) }
-    }
 }
 
 
@@ -63,20 +56,19 @@ pub fn spawn_splash(
             splash_color
         );
         
-        commands.spawn((Splash::new(), sprite));        
+        commands.spawn((Splash, Clock::millis(SPLASH_ANIMATION_SPEED), sprite));        
     }
-
 }
 
 
 pub fn animate_splash(
     time: Res<Time>,
-    mut query: Query<(&mut TextureAtlasSprite, &mut Transform, &mut Splash, Entity)>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Transform, &mut Clock, Entity), With<Splash>>,
     mut commands: Commands
 ) {
-    for (mut sprite, mut transform, mut splash, entity) in query.iter_mut() {
-        splash.timer.tick(time.delta());
-        if splash.timer.just_finished() {
+    for (mut sprite, mut transform, mut clock, entity) in query.iter_mut() {
+        clock.tick(time.delta());
+        if clock.just_finished() {
             if sprite.index < 5 { 
                 sprite.index += 1;
             }

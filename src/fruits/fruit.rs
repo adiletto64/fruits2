@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 use crate::global::AppState;
@@ -7,6 +5,7 @@ use crate::utils::random::randint;
 use crate::chef::ChefHitEvent;
 use crate::sound::{SoundEvent, SoundType};
 use crate::states::session::Session;
+use crate::components::Clock;
 
 use super::penalty::WaveEvent;
 use super::sprite::FruitTextures;
@@ -97,7 +96,7 @@ impl Fruit {
 
 
 #[derive(Component)]
-pub struct HitAnimation {timer: Timer}
+pub struct HitAnimation;
 
 
 pub fn setup(
@@ -227,23 +226,20 @@ pub fn despawn_fallen_fruits(
 
 
 pub fn start_slice_animation(commands: &mut Commands, entity: &Entity) {
-    commands.entity(*entity).insert(
-        HitAnimation { 
-            timer: Timer::new(Duration::from_millis(SLICE_ANIMATION_SPEED), TimerMode::Repeating)
-        }
-    );    
+    commands.entity(*entity).insert(HitAnimation).insert(Clock::millis(SLICE_ANIMATION_SPEED))
+    ;
 }
 
 
 pub fn animate_slice(
     time: Res<Time>,
-    mut query: Query<(&mut TextureAtlasSprite, &mut HitAnimation, Entity), With<Fruit>>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Clock, Entity), With<HitAnimation>>,
     mut commands: Commands
 ) {
 
-    for (mut sprite, mut hit, entity) in query.iter_mut() {
-        hit.timer.tick(time.delta());
-        if hit.timer.just_finished() {
+    for (mut sprite, mut clock, entity) in query.iter_mut() {
+        clock.tick(time.delta());
+        if clock.just_finished() {
             if sprite.index == 7 { 
                 commands.entity(entity).remove::<HitAnimation>();
             }

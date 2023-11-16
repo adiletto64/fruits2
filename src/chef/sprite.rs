@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::components::Clock;
+
 
 pub fn get_sprite(asset_server: &Res<AssetServer>, texture_atlases: &mut ResMut<Assets<TextureAtlas>>) -> SpriteSheetBundle {
     let texture_atlas =TextureAtlas::from_grid(
@@ -34,7 +36,7 @@ pub enum ChefState {
 pub struct AnimationSlice {
     state: ChefState,
     pub index: usize,
-    pub timer: Timer,
+    pub timer: Clock,
 }
 
 impl AnimationSlice {
@@ -82,7 +84,7 @@ impl AnimationSlice {
         Self {
             state: ChefState::Waiting,
             index: 9,
-            timer: Timer::from_seconds(0.07, TimerMode::Repeating),
+            timer: Clock::seconds(0.07),
         }
     }
 

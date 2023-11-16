@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::components::Clock;
+
 
 
 pub struct TextPlugin;
@@ -24,7 +26,7 @@ pub struct TextEvent {
 }
 
 #[derive(Component)]
-struct Message(Timer);
+struct Message;
 
 
 fn spawn_text(
@@ -50,7 +52,8 @@ fn spawn_text(
     
         commands.spawn((
             handle,
-            Message(Timer::from_seconds(1.5, TimerMode::Once))
+            Message,
+            Clock::seconds_once(1.5)
         ));        
     }
 }
@@ -59,14 +62,14 @@ fn spawn_text(
 fn animate_text(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &mut Message, Entity)>
+    mut query: Query<(&mut Transform, &mut Clock, Entity), With<Message>>
 ) {
-    for (mut transform, mut message, entity) in &mut query {
+    for (mut transform, mut clock, entity) in &mut query {
         transform.translation.y += 20. * time.delta_seconds();
 
-        message.0.tick(time.delta());
+        clock.tick(time.delta());
 
-        if message.0.finished() {
+        if clock.finished() {
             commands.entity(entity).despawn();
         }
     }
