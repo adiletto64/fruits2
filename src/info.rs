@@ -79,7 +79,7 @@ fn update_live(
             commands.spawn((
                 SpriteBundle {
                     texture: asset_server.load("images/heart-empty.png"),
-                    transform: Transform::from_xyz(370. + 40. * i as f32, 180., 10.).with_scale(Vec3::splat(3.)),
+                    transform: Transform::from_xyz(370. + 40. * i as f32, 180., 9.).with_scale(Vec3::splat(3.)),
                     ..default()
                 },
                 TextInfo,
@@ -92,7 +92,7 @@ fn update_live(
             commands.spawn((
                 SpriteBundle {
                     texture: asset_server.load("images/heart.png"),
-                    transform: Transform::from_xyz(530. - 40. * i as f32, 180., 10.).with_scale(Vec3::splat(3.)),
+                    transform: Transform::from_xyz(530. - 40. * i as f32, 180., 9.).with_scale(Vec3::splat(3.)),
                     ..default()
                 },
                 TextInfo,
