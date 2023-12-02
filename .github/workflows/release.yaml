@@ -38,7 +38,7 @@ jobs:
       - name: Package as a zip
         working-directory: ./linux
         run: |
-          zip --recurse-paths ../${{ env.binary }}.zip .
+          zip --recurse-paths ../${{ env.binary }}-x86_64-linux-gnu.zip .
 
       - name: Upload binaries to artifacts
         uses: actions/upload-artifact@v3
@@ -81,7 +81,7 @@ jobs:
 
       - name: Package as a zip
         run: |
-          Compress-Archive -Path windows/* -DestinationPath ${{ env.binary }}.zip
+          Compress-Archive -Path windows/* -DestinationPath ${{ env.binary }}-x86_64-windows.zip
 
       - name: Upload binaries to artifacts
         uses: actions/upload-artifact@v3
