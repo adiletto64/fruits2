@@ -1,14 +1,26 @@
 // Hide console on Windows on release 
 // https://bevy-cheatbook.github.io/platforms/windows.html#disabling-the-windows-console
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// ==============================================================
+
 
 // complexity
-// #![warn(clippy::nursery)]
+#![warn(clippy::nursery)]
 
 // pedantic
-// #![warn(clippy::pedantic, clippy::style)]
+#![warn(clippy::pedantic, clippy::style)]
 
-#![allow(clippy::upper_case_acronyms, clippy::suboptimal_flops, clippy::needless_pass_by_value, clippy::module_name_repetitions)]
+
+#![allow(
+    clippy::upper_case_acronyms, 
+    clippy::suboptimal_flops, 
+    clippy::needless_pass_by_value, 
+    clippy::module_name_repetitions,
+    clippy::too_many_arguments
+)]
+
+
+
 
 
 use std::time::Duration;

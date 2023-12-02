@@ -3,11 +3,19 @@
 <p align="center">Try to slice all fruits before they fall off</p>
 
 
-### Screenshots
+## Screenshots
 
 
 | | | |
 |-|-|-|
-|![menu](/shots/menu.png)|![game](/shots/image_2023-11-02_21-17-40.png)|
-![pause](/shots/Screenshot_1.png)|
+|![menu](/shots/menu.png)|![game](/shots/game.png)|
+|![boost](/shots/boost.png)|![pause](/shots/Screenshot_1.png)|
 
+
+## Installation
+
+- Windows (64bit) - link
+- Linux - link
+- MacOS - link
+
+after installation unzip file and click main.exe file

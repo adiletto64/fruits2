@@ -10,5 +10,5 @@ pub fn randint(min: i32, max: i32) -> i32 {
 
 pub fn probably(salt: f64) -> bool {
     let d = Bernoulli::new(salt).unwrap();
-    return d.sample(&mut rand::thread_rng());
+    d.sample(&mut rand::thread_rng())
 }

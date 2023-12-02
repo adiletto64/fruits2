@@ -11,26 +11,26 @@ pub struct Clock {
 
 impl Clock {
     pub fn seconds(seconds: f32) -> Self {
-        return Self {
+        Self {
             timer: Timer::from_seconds(seconds, TimerMode::Repeating)
         }
     }
 
     pub fn seconds_once(seconds: f32) -> Self {
-        return Self {
+        Self {
             timer: Timer::from_seconds(seconds, TimerMode::Once)
         }
     }
 
     pub fn millis(millis: u64) -> Self {
-        return Self {
+        Self {
             timer: Timer::new(Duration::from_millis(millis), TimerMode::Repeating)
         }
     }
 
     #[allow(dead_code)]
     pub fn millis_once(millis: u64) -> Self {
-        return Self {
+        Self {
             timer: Timer::new(Duration::from_millis(millis), TimerMode::Once)
         }
     }

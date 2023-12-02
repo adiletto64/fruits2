@@ -21,7 +21,7 @@ pub fn read_file() -> u32 {
     }
     
     let record = fs::read_to_string(FILE_NAME).unwrap();
-    return record.parse::<u32>().unwrap_or(0);
+    record.parse::<u32>().unwrap_or(0)
 }
 
 
@@ -62,8 +62,8 @@ mod tests {
     fn test_it_checks_record() {
         write_record(100);
 
-        assert_eq!(is_record(50), false);
-        assert_eq!(is_record(150), true);
+        assert!(!is_record(50));
+        assert!(is_record(150));
 
         cleanup();
     }

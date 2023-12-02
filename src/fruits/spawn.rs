@@ -58,7 +58,7 @@ fn random_fruit_type() -> FoodType {
         return FoodType::POME;
     }
     
-    return FoodType::FRUIT;
+    FoodType::FRUIT
 }
 
 

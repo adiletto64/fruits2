@@ -68,10 +68,8 @@ pub fn animate_splash(
 ) {
     for (mut sprite, mut transform, mut clock, entity) in query.iter_mut() {
         clock.tick(time.delta());
-        if clock.just_finished() {
-            if sprite.index < 5 { 
-                sprite.index += 1;
-            }
+        if clock.just_finished() && sprite.index < 5 { 
+            sprite.index += 1;
         }        
 
         transform.translation.y -= 300. * time.delta_seconds();
