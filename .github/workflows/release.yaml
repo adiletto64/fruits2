@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 env:
   # update with the name of the main binary
-  binary: fruits2
+  binary: fruits
   add_binaries_to_github_release: true
   #itch_target: <itch.io-username>/<game-name>
 
